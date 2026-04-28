@@ -1,0 +1,13 @@
+{
+  "name": "web-winamp",
+  "version": "1.0.0",
+  "description": "Modern web version of Winamp with pixel-perfect classic interface",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python3 -m http.server 8080",
+    "dev": "python3 -m http.server 8080"
+  },
+  "keywords": ["winamp", "music", "player", "web", "retro"],
+  "author": "Web Winamp Project",
+  "license": "GPL-3.0"
+}
