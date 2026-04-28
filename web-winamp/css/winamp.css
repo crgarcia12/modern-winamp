@@ -1,0 +1,392 @@
+/* Winamp Classic Pixel-Perfect CSS */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #3c3c3c;
+    font-family: 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+    overflow: hidden;
+    user-select: none;
+}
+
+#winamp-container {
+    position: relative;
+}
+
+/* Window Base Styles */
+.window {
+    position: absolute;
+    background: #c0c0c0;
+    border: 2px outset #c0c0c0;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.draggable {
+    cursor: move;
+}
+
+/* Main Window - Exact Winamp dimensions: 275x116 pixels */
+#main-window {
+    width: 275px;
+    height: 116px;
+    top: 50px;
+    left: 50px;
+    background: url('data:image/bmp;base64,Qk04aAAAAAAAADYEAAAoAAAAEwEAAHQAAAABAAgAAQAAAAJkAAASCwAAEgsAAAAAAAAAAAAAAAAA') no-repeat;
+    background-color: #c0c0c0;
+    border: none;
+    overflow: hidden;
+}
+
+.titlebar {
+    height: 14px;
+    background: linear-gradient(90deg, #0000ff 0%, #ffffff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+}
+
+.window-title {
+    flex: 1;
+    text-align: left;
+}
+
+.window-controls {
+    display: flex;
+    gap: 2px;
+}
+
+.window-controls button {
+    width: 16px;
+    height: 14px;
+    border: 1px outset #c0c0c0;
+    background: #c0c0c0;
+    font-size: 8px;
+    cursor: pointer;
+}
+
+/* Display Area */
+#display-area {
+    position: absolute;
+    top: 26px;
+    left: 24px;
+    width: 153px;
+    height: 12px;
+    background: #000;
+    color: #00ff00;
+    font-family: monospace;
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 2px;
+}
+
+#track-title {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: scroll-text 10s linear infinite;
+}
+
+#time-display {
+    position: absolute;
+    right: 2px;
+    color: #00ff00;
+}
+
+/* Scrolling animation for long track titles */
+@keyframes scroll-text {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(0); }
+    75% { transform: translateX(-100px); }
+    100% { transform: translateX(-100px); }
+}
+
+/* Spectrum Analyzer */
+#spectrum {
+    position: absolute;
+    top: 43px;
+    left: 24px;
+    width: 76px;
+    height: 16px;
+    background: #000;
+    image-rendering: pixelated;
+}
+
+/* Transport Controls */
+#transport-controls {
+    position: absolute;
+    top: 88px;
+    left: 16px;
+    display: flex;
+    gap: 2px;
+}
+
+.transport-btn {
+    width: 23px;
+    height: 18px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+}
+
+#prev-btn { background-position: 0 0; }
+#play-btn { background-position: -23px 0; }
+#pause-btn { background-position: -46px 0; }
+#stop-btn { background-position: -69px 0; }
+#next-btn { background-position: -92px 0; }
+
+/* Position Bar */
+#position-bar {
+    position: absolute;
+    top: 72px;
+    left: 16px;
+    width: 248px;
+    height: 10px;
+    background: #000;
+    border: 1px inset #c0c0c0;
+}
+
+#position-slider {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+}
+
+#position-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 29px;
+    height: 10px;
+    background: #00ff00;
+}
+
+/* Volume Control */
+#volume-control {
+    position: absolute;
+    top: 57px;
+    left: 107px;
+    width: 68px;
+    height: 13px;
+}
+
+#volume-slider {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    position: relative;
+    cursor: pointer;
+}
+
+#volume-thumb {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    width: 14px;
+    height: 9px;
+    background: #00ff00;
+    transform: translateX(-50%);
+}
+
+/* Balance Control */
+#balance-control {
+    position: absolute;
+    top: 57px;
+    left: 177px;
+    width: 38px;
+    height: 13px;
+}
+
+#balance-slider {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    position: relative;
+    cursor: pointer;
+}
+
+#balance-thumb {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    width: 14px;
+    height: 9px;
+    background: #00ff00;
+    transform: translateX(-50%);
+}
+
+/* Control Buttons */
+.control-btn {
+    width: 23px;
+    height: 12px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+}
+
+#eq-btn {
+    position: absolute;
+    top: 88px;
+    left: 219px;
+}
+
+#pl-btn {
+    position: absolute;
+    top: 88px;
+    left: 242px;
+}
+
+/* Shuffle/Repeat Controls */
+#shuffle-repeat {
+    position: absolute;
+    top: 101px;
+    left: 164px;
+    display: flex;
+    gap: 24px;
+}
+
+.mode-btn {
+    width: 46px;
+    height: 15px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+}
+
+/* Info Displays */
+#kbps-display,
+#khz-display,
+#stereo-display {
+    position: absolute;
+    color: #00ff00;
+    font-family: monospace;
+    font-size: 8px;
+    background: #000;
+    padding: 0 2px;
+}
+
+#kbps-display {
+    top: 43px;
+    right: 156px;
+    width: 15px;
+    height: 6px;
+}
+
+#khz-display {
+    top: 50px;
+    right: 156px;
+    width: 10px;
+    height: 6px;
+}
+
+#stereo-display {
+    top: 57px;
+    right: 156px;
+    width: 29px;
+    height: 6px;
+}
+
+/* Playlist Window */
+#playlist-window {
+    width: 275px;
+    height: 232px;
+    top: 200px;
+    left: 350px;
+    background: #c0c0c0;
+    display: none;
+}
+
+#playlist-content {
+    padding: 20px 4px 4px;
+    height: calc(100% - 14px);
+    overflow: hidden;
+}
+
+#playlist-controls {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+
+#url-input {
+    flex: 1;
+    height: 20px;
+    border: 1px inset #c0c0c0;
+    padding: 2px 4px;
+    font-family: 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+}
+
+#add-url-btn,
+#clear-playlist-btn {
+    height: 20px;
+    border: 1px outset #c0c0c0;
+    background: #c0c0c0;
+    padding: 0 8px;
+    cursor: pointer;
+    font-family: 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+}
+
+#add-url-btn:active,
+#clear-playlist-btn:active {
+    border: 1px inset #c0c0c0;
+}
+
+#playlist-tracks {
+    height: calc(100% - 32px);
+    border: 1px inset #c0c0c0;
+    background: white;
+    overflow-y: auto;
+    font-family: 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+}
+
+.track-item {
+    padding: 2px 4px;
+    cursor: pointer;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.track-item:hover {
+    background: #316ac5;
+    color: white;
+}
+
+.track-item.playing {
+    background: #0000ff;
+    color: white;
+}
+
+/* Button hover effects */
+button:hover {
+    filter: brightness(1.1);
+}
+
+button:active {
+    filter: brightness(0.9);
+}
+
+/* Responsive behavior */
+@media (max-width: 800px) {
+    #main-window {
+        left: 10px;
+        top: 10px;
+    }
+    
+    #playlist-window {
+        left: 10px;
+        top: 150px;
+    }
+}

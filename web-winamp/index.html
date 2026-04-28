@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winamp</title>
+    <link rel="stylesheet" href="css/winamp.css">
+</head>
+<body>
+    <div id="winamp-container">
+        <!-- Main Player Window -->
+        <div id="main-window" class="window draggable">
+            <div class="titlebar">
+                <div class="window-title">Winamp</div>
+                <div class="window-controls">
+                    <button class="minimize-btn"></button>
+                    <button class="close-btn"></button>
+                </div>
+            </div>
+            
+            <!-- Display Area -->
+            <div id="display-area">
+                <div id="track-info">
+                    <div id="track-title">Winamp ***</div>
+                    <div id="time-display">-:--</div>
+                </div>
+                <div id="kbps-display">*** kbps</div>
+                <div id="khz-display">** kHz</div>
+                <div id="stereo-display">stereo</div>
+            </div>
+            
+            <!-- Spectrum Analyzer -->
+            <canvas id="spectrum" width="76" height="16"></canvas>
+            
+            <!-- Transport Controls -->
+            <div id="transport-controls">
+                <button id="prev-btn" class="transport-btn"></button>
+                <button id="play-btn" class="transport-btn"></button>
+                <button id="pause-btn" class="transport-btn"></button>
+                <button id="stop-btn" class="transport-btn"></button>
+                <button id="next-btn" class="transport-btn"></button>
+            </div>
+            
+            <!-- Position Bar -->
+            <div id="position-bar">
+                <div id="position-slider">
+                    <div id="position-thumb"></div>
+                </div>
+            </div>
+            
+            <!-- Volume Control -->
+            <div id="volume-control">
+                <div id="volume-slider">
+                    <div id="volume-thumb"></div>
+                </div>
+            </div>
+            
+            <!-- Balance Control -->
+            <div id="balance-control">
+                <div id="balance-slider">
+                    <div id="balance-thumb"></div>
+                </div>
+            </div>
+            
+            <!-- Equalizer Button -->
+            <button id="eq-btn" class="control-btn"></button>
+            
+            <!-- Playlist Button -->
+            <button id="pl-btn" class="control-btn"></button>
+            
+            <!-- Shuffle/Repeat Controls -->
+            <div id="shuffle-repeat">
+                <button id="shuffle-btn" class="mode-btn"></button>
+                <button id="repeat-btn" class="mode-btn"></button>
+            </div>
+        </div>
+        
+        <!-- Playlist Window -->
+        <div id="playlist-window" class="window draggable" style="display: none;">
+            <div class="titlebar">
+                <div class="window-title">Winamp Playlist Editor</div>
+                <div class="window-controls">
+                    <button class="minimize-btn"></button>
+                    <button class="close-btn"></button>
+                </div>
+            </div>
+            
+            <div id="playlist-content">
+                <div id="playlist-controls">
+                    <input type="text" id="url-input" placeholder="Paste MP3 URL here..." />
+                    <button id="add-url-btn">Add</button>
+                    <button id="clear-playlist-btn">Clear</button>
+                </div>
+                
+                <div id="playlist-tracks">
+                    <!-- Tracks will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/winamp.js"></script>
+</body>
+</html>
