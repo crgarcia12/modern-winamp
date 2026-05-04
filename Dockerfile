@@ -25,4 +25,4 @@ RUN npm install -g serve
 EXPOSE 3000
 
 # Start the application, binding to all interfaces on the port
-CMD ["sh", "-c", "serve -s dist -p $PORT"]
+CMD ["sh", "-c", "serve -s dist -p ${PORT:-3000} --no-port-switching"]
