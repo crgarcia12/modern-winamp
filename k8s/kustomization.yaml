@@ -9,7 +9,7 @@ resources:
 
 images:
 - name: crgarliliputacr.azurecr.io/liliput-app-crgarcia12-modern-winamp
-  newTag: 4db8150bb625
+  newTag: 5cffaceba308
 
 commonLabels:
   app: modern-winamp
