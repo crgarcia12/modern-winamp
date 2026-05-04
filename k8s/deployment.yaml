@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modern-winamp
+  namespace: devx-crgarcia12-modern-winamp-liliput-920ccf05
+  labels:
+    app: modern-winamp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: modern-winamp
+  template:
+    metadata:
+      labels:
+        app: modern-winamp
+    spec:
+      containers:
+      - name: app
+        image: crgarliliputacr.azurecr.io/liliput-app-crgarcia12-modern-winamp:latest
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: modern-winamp-service
+  namespace: devx-crgarcia12-modern-winamp-liliput-920ccf05
+  labels:
+    app: modern-winamp
+spec:
+  selector:
+    app: modern-winamp
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+  type: ClusterIP
