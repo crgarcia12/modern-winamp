@@ -1,21 +1,34 @@
-// Rebuild trigger - version 1.0.1
-import React, { useState, useEffect, useRef } from 'react';
+// Enhanced Winamp v2.0 - Real Audio Engine & Skin Support
+import React, { useRef } from 'react';
+import { useAudio } from './hooks/useAudio';
+import { useSkinLoader } from './hooks/useSkinLoader';
 
 const App: React.FC = () => {
-  const [currentTime, setCurrentTime] = useState('00:00');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(75);
-  const [position, setPosition] = useState(0);
-  const [songTitle, setSongTitle] = useState('***** WINAMP 5.666 ***** ');
-  const [scrollingTitle, setScrollingTitle] = useState('***** WINAMP 5.666 ***** ');
-  const [isPaused, setIsPaused] = useState(false);
-  const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    audioRef,
+    audioState,
+    loadFile,
+    play,
+    pause,
+    stop,
+    seek,
+    setVolume
+  } = useAudio();
 
-  // Scrolling title effect
-  useEffect(() => {
-    const fullTitle = songTitle.length > 30 ? songTitle : songTitle + ' '.repeat(30);
+  const {
+    loadSkin,
+    applySkin,
+    resetToDefaultSkin
+  } = useSkinLoader();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const skinInputRef = useRef<HTMLInputElement>(null);
+
+  // Scrolling title effect for filename
+  const [scrollingTitle, setScrollingTitle] = React.useState('***** WINAMP 5.666 ***** ');
+
+  React.useEffect(() => {
+    const fullTitle = audioState.fileName.length > 30 ? audioState.fileName : audioState.fileName + ' '.repeat(30);
     let scrollIndex = 0;
     
     const scrollInterval = setInterval(() => {
@@ -24,74 +37,9 @@ const App: React.FC = () => {
     }, 300);
 
     return () => clearInterval(scrollInterval);
-  }, [songTitle]);
+  }, [audioState.fileName]);
 
-  // Animation effect for visualizations
-  useEffect(() => {
-    if (isPlaying && !isPaused) {
-      const animationInterval = setInterval(() => {
-        // This will trigger re-renders for animation
-        setPosition(prev => prev);
-      }, 100);
-      
-      return () => clearInterval(animationInterval);
-    }
-  }, [isPlaying, isPaused]);
-
-  // Timer effect
-  useEffect(() => {
-    if (isPlaying && !isPaused) {
-      const interval = setInterval(() => {
-        setCurrentTime(prev => {
-          const [min, sec] = prev.split(':').map(Number);
-          const totalSeconds = min * 60 + sec + 1;
-          const newMin = Math.floor(totalSeconds / 60);
-          const newSec = totalSeconds % 60;
-          return `${newMin.toString().padStart(2, '0')}:${newSec.toString().padStart(2, '0')}`;
-        });
-        setPosition(prev => {
-          const newPos = prev + (100/180); // Assuming 3-minute song
-          return newPos >= 100 ? 100 : newPos;
-        });
-      }, 1000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [isPlaying, isPaused]);
-
-  const handlePlay = () => {
-    if (isPaused) {
-      setIsPaused(false);
-    } else {
-      setIsPlaying(true);
-    }
-  };
-
-  const handlePause = () => {
-    setIsPaused(true);
-  };
-
-  const handleStop = () => {
-    setIsPlaying(false);
-    setIsPaused(false);
-    setCurrentTime('00:00');
-    setPosition(0);
-  };
-
-  const handlePrev = () => {
-    setCurrentTime('00:00');
-    setPosition(0);
-    setSongTitle('***** PREVIOUS TRACK *****');
-    setTimeout(() => setSongTitle('***** WINAMP 5.666 ***** '), 2000);
-  };
-
-  const handleNext = () => {
-    setCurrentTime('00:00');
-    setPosition(0);
-    setSongTitle('***** NEXT TRACK *****');
-    setTimeout(() => setSongTitle('***** WINAMP 5.666 ***** '), 2000);
-  };
-
+  // Event handlers using new audio engine
   const handleFileOpen = () => {
     fileInputRef.current?.click();
   };
@@ -99,12 +47,21 @@ const App: React.FC = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
-      setSongTitle(`♫ ${fileName.toUpperCase()} ♫`);
-      setCurrentTime('00:00');
-      setPosition(0);
-      setIsPlaying(false);
-      setIsPaused(false);
+      loadFile(file);
+    }
+  };
+
+  const handleSkinOpen = () => {
+    skinInputRef.current?.click();
+  };
+
+  const handleSkinSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const skin = await loadSkin(file);
+      if (skin) {
+        applySkin(skin);
+      }
     }
   };
 
@@ -117,23 +74,87 @@ const App: React.FC = () => {
   const handlePositionChange = (event: React.MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
     const newPosition = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
-    setPosition(newPosition);
+    seek(newPosition);
+  };
+
+  // Generate real spectrum visualization from audio data
+  const renderSpectrum = () => {
+    const bars = [];
+    const dataStep = Math.floor(audioState.frequencyData.length / 20);
     
-    // Update time based on position (assuming 3-minute song)
-    const totalSeconds = Math.floor((newPosition / 100) * 180);
-    const min = Math.floor(totalSeconds / 60);
-    const sec = totalSeconds % 60;
-    setCurrentTime(`${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`);
+    for (let i = 0; i < 20; i++) {
+      const value = audioState.frequencyData[i * dataStep] || 0;
+      const height = Math.max(1, (value / 255) * 16);
+      bars.push(
+        <div
+          key={i}
+          className="winamp-spectrum-bar"
+          style={{
+            height: `${height}px`,
+            background: height > 8 
+              ? 'linear-gradient(to bottom, #ff0000 0%, #ff6600 50%, #ffff00 100%)'
+              : 'linear-gradient(to bottom, #00ff41 0%, #00aa00 100%)'
+          }}
+        />
+      );
+    }
+    return bars;
+  };
+
+  // Generate real oscilloscope visualization
+  const renderOscilloscope = () => {
+    if (audioState.timeDomainData.length === 0) {
+      return null;
+    }
+
+    const points = [];
+    const sliceWidth = 76 / audioState.timeDomainData.length;
+    let x = 0;
+
+    for (let i = 0; i < audioState.timeDomainData.length; i++) {
+      const v = audioState.timeDomainData[i] / 128.0;
+      const y = v * 8;
+      
+      if (i === 0) {
+        points.push(`M${x},${y + 8}`);
+      } else {
+        points.push(`L${x},${y + 8}`);
+      }
+      x += sliceWidth;
+    }
+
+    return (
+      <svg width="76" height="16" style={{ position: 'absolute', top: 0, left: 0 }}>
+        <path
+          d={points.join(' ')}
+          stroke="#00ff41"
+          strokeWidth="1"
+          fill="none"
+          style={{ filter: 'drop-shadow(0 0 2px #00ff41)' }}
+        />
+      </svg>
+    );
   };
 
   return (
     <div className="winamp">
+      {/* Hidden audio element */}
+      <audio ref={audioRef} />
+      
+      {/* File inputs */}
       <input
         ref={fileInputRef}
         type="file"
         accept="audio/*"
         style={{ display: 'none' }}
         onChange={handleFileSelect}
+      />
+      <input
+        ref={skinInputRef}
+        type="file"
+        accept=".wsz,image/*"
+        style={{ display: 'none' }}
+        onChange={handleSkinSelect}
       />
       
       {/* Title Bar */}
@@ -144,65 +165,49 @@ const App: React.FC = () => {
 
       {/* Display */}
       <div className="winamp-display">
-        {/* Spectrum Analyzer */}
+        {/* Spectrum Analyzer with real data */}
         <div className="winamp-spectrum">
-          {Array.from({ length: 20 }, (_, i) => (
-            <div
-              key={i}
-              className="winamp-spectrum-bar"
-              style={{
-                height: isPlaying && !isPaused 
-                  ? `${Math.random() * 16}px` 
-                  : '1px',
-                animationDelay: `${i * 50}ms`
-              }}
-            />
-          ))}
+          {renderSpectrum()}
         </div>
 
-        <div className="winamp-time">{currentTime}</div>
+        <div className="winamp-time">{audioState.currentTime}</div>
 
-        {/* Oscilloscope */}
+        {/* Oscilloscope with real data */}
         <div className="winamp-oscilloscope">
-          <div 
-            className="winamp-oscilloscope-line" 
-            style={{
-              transform: isPlaying && !isPaused 
-                ? `scaleY(${Math.sin(Date.now() * 0.01) * 0.5 + 1})` 
-                : 'scaleY(0.1)'
-            }}
-          />
+          {renderOscilloscope()}
         </div>
 
         <div className="winamp-song-info">{scrollingTitle.substring(0, 25)}</div>
-        <div className="winamp-kbps">128 kbps • 44 kHz • stereo</div>
+        <div className="winamp-kbps">
+          {audioState.isLoaded ? `${audioState.duration} • stereo` : '128 kbps • 44 kHz • stereo'}
+        </div>
       </div>
 
       {/* Controls */}
       <div className="winamp-controls">
-        <button className="winamp-button" onClick={handlePrev} title="Previous">❮❮</button>
-        <button className="winamp-button" onClick={handlePlay} title="Play">▶</button>
-        <button className="winamp-button" onClick={handlePause} title="Pause">⏸</button>
-        <button className="winamp-button" onClick={handleStop} title="Stop">⏹</button>
-        <button className="winamp-button" onClick={handleNext} title="Next">❯❯</button>
+        <button className="winamp-button" onClick={stop} title="Previous">❮❮</button>
+        <button 
+          className="winamp-button" 
+          onClick={play} 
+          title="Play"
+          disabled={!audioState.isLoaded}
+        >
+          ▶
+        </button>
+        <button 
+          className="winamp-button" 
+          onClick={pause} 
+          title="Pause"
+          disabled={!audioState.isPlaying}
+        >
+          ⏸
+        </button>
+        <button className="winamp-button" onClick={stop} title="Stop">⏹</button>
+        <button className="winamp-button" onClick={stop} title="Next">❯❯</button>
         
         <button className="winamp-button" onClick={handleFileOpen} title="Open File">📁</button>
-        <button 
-          className="winamp-button" 
-          onClick={() => setShuffle(!shuffle)} 
-          title="Shuffle"
-          style={{ background: shuffle ? '#ffff80' : undefined }}
-        >
-          🔀
-        </button>
-        <button 
-          className="winamp-button" 
-          onClick={() => setRepeat(!repeat)} 
-          title="Repeat"
-          style={{ background: repeat ? '#ffff80' : undefined }}
-        >
-          🔁
-        </button>
+        <button className="winamp-button" onClick={handleSkinOpen} title="Load Skin">🎨</button>
+        <button className="winamp-button" onClick={resetToDefaultSkin} title="Reset Skin">🔄</button>
       </div>
 
       {/* Position Slider */}
@@ -211,7 +216,7 @@ const App: React.FC = () => {
           <div className="winamp-slider-track"></div>
           <div 
             className="winamp-slider-thumb" 
-            style={{ left: `${Math.max(0, position - 2)}%` }}
+            style={{ left: `${Math.max(0, audioState.position - 2)}%` }}
           ></div>
         </div>
       </div>
@@ -219,17 +224,19 @@ const App: React.FC = () => {
       {/* Bottom Section */}
       <div className="winamp-bottom">
         <div className="winamp-volume">
-          <span style={{ fontSize: '8px', color: '#000' }}>Volume:</span>
+          <span style={{ fontSize: '8px', color: '#ddd' }}>Volume:</span>
           <div className="winamp-volume-slider" onClick={handleVolumeChange}>
             <div className="winamp-slider-track"></div>
             <div 
               className="winamp-slider-thumb" 
-              style={{ left: `${Math.max(0, volume - 2)}%` }}
+              style={{ left: `${Math.max(0, audioState.volume - 2)}%` }}
             ></div>
           </div>
         </div>
 
-        <div className="winamp-mono-stereo">STEREO</div>
+        <div className="winamp-mono-stereo">
+          {audioState.isLoaded ? 'STEREO' : 'STEREO'}
+        </div>
 
         <div className="winamp-eq-pl">
           <button className="winamp-eq" title="Equalizer">EQ</button>
