@@ -259,19 +259,19 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* Playlist & Equalizer windows */}
-      {showPlaylist && (
-        <PlaylistEditor
-          isVisible={showPlaylist}
-          onClose={() => setShowPlaylist(false)}
-          onLoadTrack={(entry: any) => entry?.file && loadFile(entry.file)}
-        />
-      )}
+      {/* Order matches classic Winamp: main window → equalizer → playlist */}
       {showEqualizer && (
         <Equalizer
           isVisible={showEqualizer}
           onClose={() => setShowEqualizer(false)}
           audioContext={null}
+        />
+      )}
+      {showPlaylist && (
+        <PlaylistEditor
+          isVisible={showPlaylist}
+          onClose={() => setShowPlaylist(false)}
+          onLoadTrack={(entry: any) => entry?.file && loadFile(entry.file)}
         />
       )}
 
