@@ -16,11 +16,19 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .winamp {
-  /* Classic Winamp main window background with gradient */
-  background: linear-gradient(135deg, #525252 0%, #393939 20%, #2a2a2a 40%, #1e1e1e 60%, #1a1a1a 80%, #181818 100%);
+  /* Authentic Winamp classic skin with proper bitmap styling */
+  background: linear-gradient(135deg, 
+    #404040 0%, 
+    #303030 25%, 
+    #202020 50%, 
+    #181818 75%, 
+    #101010 100%
+  );
   border: 1px solid #000;
   width: 275px;
   height: 116px;
@@ -28,28 +36,34 @@ body {
   cursor: default;
   user-select: none;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-  border-radius: 1px;
+  /* Classic Winamp metallic frame */
+  border-image: linear-gradient(45deg, #666, #333, #000) 1;
 }
 
 .winamp-titlebar {
   height: 14px;
-  /* Classic Winamp titlebar with blue gradient */
-  background: linear-gradient(to bottom, #4169e1 0%, #1e40af 50%, #1e3a8a 100%);
+  /* Authentic Winamp classic titlebar */
+  background: linear-gradient(to bottom, 
+    #0066cc 0%, 
+    #004499 50%, 
+    #002266 100%
+  );
   display: flex;
   align-items: center;
   padding: 0 4px;
   position: relative;
   border-bottom: 1px solid #000;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+  box-shadow: inset 0 1px 0 rgba(70, 130, 180, 0.6);
 }
 
 .winamp-title {
   color: #ffffff;
   font-size: 8px;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  text-shadow: 1px 1px 2px rgba(0,0,0,1);
   letter-spacing: 0.5px;
   font-family: 'MS Sans Serif', sans-serif;
+  text-transform: uppercase;
 }
 
 .winamp-close {
@@ -305,4 +319,259 @@ body {
   color: #999;
   margin-right: 4px;
   text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+}
+
+/* Playlist Editor Styling */
+.playlist-window {
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 275px;
+  height: 232px;
+  background: linear-gradient(135deg, #404040 0%, #303030 25%, #202020 50%, #181818 75%, #101010 100%);
+  border: 1px solid #000;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+  z-index: 1000;
+}
+
+.playlist-header {
+  height: 14px;
+  background: linear-gradient(to bottom, #0066cc 0%, #004499 50%, #002266 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  border-bottom: 1px solid #000;
+}
+
+.playlist-title {
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,1);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.playlist-btn {
+  background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 50%, #b0b0b0 100%);
+  border: 1px solid #000;
+  width: 9px;
+  height: 8px;
+  font-size: 6px;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playlist-actions {
+  height: 20px;
+  background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-bottom: 1px solid #000;
+}
+
+.playlist-action-btn {
+  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
+  border: 1px outset #555;
+  color: #ddd;
+  font-size: 8px;
+  height: 16px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.playlist-info {
+  color: #999;
+  font-size: 8px;
+  margin-left: auto;
+}
+
+.playlist-content {
+  height: 178px;
+  background: #000;
+  overflow-y: auto;
+  border: 1px inset #333;
+  margin: 2px;
+}
+
+.playlist-items {
+  height: 100%;
+}
+
+.playlist-item {
+  display: flex;
+  align-items: center;
+  padding: 1px 4px;
+  height: 16px;
+  cursor: pointer;
+  color: #00ff00;
+  font-size: 8px;
+  font-family: 'MS Sans Serif', sans-serif;
+}
+
+.playlist-item:hover {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+.playlist-item.selected {
+  background: rgba(0, 255, 0, 0.3);
+  color: #ffffff;
+}
+
+.playlist-number {
+  width: 20px;
+  text-align: right;
+  margin-right: 6px;
+  color: #888;
+}
+
+.playlist-filename {
+  flex: 1;
+}
+
+.playlist-empty {
+  color: #666;
+  text-align: center;
+  padding: 40px;
+  font-size: 8px;
+}
+
+/* Equalizer Styling */
+.equalizer-window {
+  position: absolute;
+  top: 120px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 275px;
+  height: 116px;
+  background: linear-gradient(135deg, #404040 0%, #303030 25%, #202020 50%, #181818 75%, #101010 100%);
+  border: 1px solid #000;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+  z-index: 1000;
+}
+
+.eq-header {
+  height: 14px;
+  background: linear-gradient(to bottom, #0066cc 0%, #004499 50%, #002266 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  border-bottom: 1px solid #000;
+}
+
+.eq-title {
+  color: #ffffff;
+  font-size: 8px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,1);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.eq-btn {
+  background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 50%, #b0b0b0 100%);
+  border: 1px solid #000;
+  width: 9px;
+  height: 8px;
+  font-size: 6px;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eq-main-controls {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
+}
+
+.eq-power-btn, .eq-auto-btn {
+  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
+  border: 1px outset #555;
+  color: #ddd;
+  font-size: 8px;
+  height: 16px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.eq-power-btn.enabled, .eq-auto-btn.enabled {
+  background: linear-gradient(to bottom, #ffaa00 0%, #ff8800 50%, #ff6600 100%);
+  color: #000;
+}
+
+.eq-preset-select {
+  background: #2a2a2a;
+  border: 1px inset #555;
+  color: #ddd;
+  font-size: 8px;
+  height: 16px;
+  flex: 1;
+}
+
+.eq-reset-btn {
+  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
+  border: 1px outset #555;
+  color: #ddd;
+  font-size: 8px;
+  height: 16px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.eq-bands {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  height: 70px;
+  background: #1a1a1a;
+}
+
+.eq-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 20px;
+}
+
+.eq-band-slider {
+  writing-mode: bt-lr;
+  -webkit-appearance: slider-vertical;
+  width: 4px;
+  height: 40px;
+  background: #333;
+}
+
+.eq-band-value {
+  color: #00ff00;
+  font-size: 6px;
+  margin: 2px 0;
+}
+
+.eq-band-label {
+  color: #999;
+  font-size: 6px;
+}
+
+.eq-status {
+  height: 12px;
+  background: #000;
+  color: #00ff00;
+  font-size: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
 }

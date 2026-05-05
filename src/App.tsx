@@ -1,7 +1,9 @@
-// Enhanced Winamp v2.0 - Real Audio Engine & Skin Support
-import React, { useRef } from 'react';
+// Enhanced Winamp v3.0 - Complete with Playlist & Equalizer
+import React, { useRef, useState } from 'react';
 import { useAudio } from './hooks/useAudio';
 import { useSkinLoader } from './hooks/useSkinLoader';
+import { PlaylistEditor } from './components/PlaylistEditor';
+import { Equalizer } from './components/Equalizer';
 
 const App: React.FC = () => {
   const {
@@ -23,6 +25,10 @@ const App: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const skinInputRef = useRef<HTMLInputElement>(null);
+  
+  // Window visibility states
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [showEqualizer, setShowEqualizer] = useState(false);
 
   // Scrolling title effect for filename
   const [scrollingTitle, setScrollingTitle] = React.useState('***** WINAMP 5.666 ***** ');
@@ -62,6 +68,12 @@ const App: React.FC = () => {
       if (skin) {
         applySkin(skin);
       }
+    }
+  };
+
+  const handlePlaylistTrack = (entry: any) => {
+    if (entry.file) {
+      loadFile(entry.file);
     }
   };
 
@@ -137,113 +149,141 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="winamp">
-      {/* Hidden audio element */}
-      <audio ref={audioRef} />
-      
-      {/* File inputs */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="audio/*"
-        style={{ display: 'none' }}
-        onChange={handleFileSelect}
-      />
-      <input
-        ref={skinInputRef}
-        type="file"
-        accept=".wsz,image/*"
-        style={{ display: 'none' }}
-        onChange={handleSkinSelect}
-      />
-      
-      {/* Title Bar */}
-      <div className="winamp-titlebar">
-        <span className="winamp-title">Winamp</span>
-        <div className="winamp-close">×</div>
-      </div>
-
-      {/* Display */}
-      <div className="winamp-display">
-        {/* Spectrum Analyzer with real data */}
-        <div className="winamp-spectrum">
-          {renderSpectrum()}
-        </div>
-
-        <div className="winamp-time">{audioState.currentTime}</div>
-
-        {/* Oscilloscope with real data */}
-        <div className="winamp-oscilloscope">
-          {renderOscilloscope()}
-        </div>
-
-        <div className="winamp-song-info">{scrollingTitle.substring(0, 25)}</div>
-        <div className="winamp-kbps">
-          {audioState.isLoaded ? `${audioState.duration} • stereo` : '128 kbps • 44 kHz • stereo'}
-        </div>
-      </div>
-
-      {/* Controls */}
-      <div className="winamp-controls">
-        <button className="winamp-button" onClick={stop} title="Previous">❮❮</button>
-        <button 
-          className="winamp-button" 
-          onClick={play} 
-          title="Play"
-          disabled={!audioState.isLoaded}
-        >
-          ▶
-        </button>
-        <button 
-          className="winamp-button" 
-          onClick={pause} 
-          title="Pause"
-          disabled={!audioState.isPlaying}
-        >
-          ⏸
-        </button>
-        <button className="winamp-button" onClick={stop} title="Stop">⏹</button>
-        <button className="winamp-button" onClick={stop} title="Next">❯❯</button>
+    <>
+      <div className="winamp">
+        {/* Hidden audio element */}
+        <audio ref={audioRef} />
         
-        <button className="winamp-button" onClick={handleFileOpen} title="Open File">📁</button>
-        <button className="winamp-button" onClick={handleSkinOpen} title="Load Skin">🎨</button>
-        <button className="winamp-button" onClick={resetToDefaultSkin} title="Reset Skin">🔄</button>
-      </div>
-
-      {/* Position Slider */}
-      <div className="winamp-position">
-        <div className="winamp-slider" onClick={handlePositionChange}>
-          <div className="winamp-slider-track"></div>
-          <div 
-            className="winamp-slider-thumb" 
-            style={{ left: `${Math.max(0, audioState.position - 2)}%` }}
-          ></div>
+        {/* File inputs */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*"
+          style={{ display: 'none' }}
+          onChange={handleFileSelect}
+        />
+        <input
+          ref={skinInputRef}
+          type="file"
+          accept=".wsz,image/*"
+          style={{ display: 'none' }}
+          onChange={handleSkinSelect}
+        />
+        
+        {/* Title Bar */}
+        <div className="winamp-titlebar">
+          <span className="winamp-title">Winamp</span>
+          <div className="winamp-close">×</div>
         </div>
-      </div>
 
-      {/* Bottom Section */}
-      <div className="winamp-bottom">
-        <div className="winamp-volume">
-          <span style={{ fontSize: '8px', color: '#ddd' }}>Volume:</span>
-          <div className="winamp-volume-slider" onClick={handleVolumeChange}>
+        {/* Display */}
+        <div className="winamp-display">
+          {/* Spectrum Analyzer with real data */}
+          <div className="winamp-spectrum">
+            {renderSpectrum()}
+          </div>
+
+          <div className="winamp-time">{audioState.currentTime}</div>
+
+          {/* Oscilloscope with real data */}
+          <div className="winamp-oscilloscope">
+            {renderOscilloscope()}
+          </div>
+
+          <div className="winamp-song-info">{scrollingTitle.substring(0, 25)}</div>
+          <div className="winamp-kbps">
+            {audioState.isLoaded ? `${audioState.duration} • stereo` : '128 kbps • 44 kHz • stereo'}
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="winamp-controls">
+          <button className="winamp-button" onClick={stop} title="Previous">❮❮</button>
+          <button 
+            className="winamp-button" 
+            onClick={play} 
+            title="Play"
+            disabled={!audioState.isLoaded}
+          >
+            ▶
+          </button>
+          <button 
+            className="winamp-button" 
+            onClick={pause} 
+            title="Pause"
+            disabled={!audioState.isPlaying}
+          >
+            ⏸
+          </button>
+          <button className="winamp-button" onClick={stop} title="Stop">⏹</button>
+          <button className="winamp-button" onClick={stop} title="Next">❯❯</button>
+          
+          <button className="winamp-button" onClick={handleFileOpen} title="Open File">📁</button>
+          <button className="winamp-button" onClick={handleSkinOpen} title="Load Skin">🎨</button>
+          <button className="winamp-button" onClick={resetToDefaultSkin} title="Reset Skin">🔄</button>
+        </div>
+
+        {/* Position Slider */}
+        <div className="winamp-position">
+          <div className="winamp-slider" onClick={handlePositionChange}>
             <div className="winamp-slider-track"></div>
             <div 
               className="winamp-slider-thumb" 
-              style={{ left: `${Math.max(0, audioState.volume - 2)}%` }}
+              style={{ left: `${Math.max(0, audioState.position - 2)}%` }}
             ></div>
           </div>
         </div>
 
-        <div className="winamp-mono-stereo">
-          {audioState.isLoaded ? 'STEREO' : 'STEREO'}
-        </div>
+        {/* Bottom Section */}
+        <div className="winamp-bottom">
+          <div className="winamp-volume">
+            <span style={{ fontSize: '8px', color: '#ddd' }}>Volume:</span>
+            <div className="winamp-volume-slider" onClick={handleVolumeChange}>
+              <div className="winamp-slider-track"></div>
+              <div 
+                className="winamp-slider-thumb" 
+                style={{ left: `${Math.max(0, audioState.volume - 2)}%` }}
+              ></div>
+            </div>
+          </div>
 
-        <div className="winamp-eq-pl">
-          <button className="winamp-eq" title="Equalizer">EQ</button>
-          <button className="winamp-pl" title="Playlist">PL</button>
+          <div className="winamp-mono-stereo">
+            {audioState.isLoaded ? 'STEREO' : 'STEREO'}
+          </div>
+
+          <div className="winamp-eq-pl">
+            <button 
+              className="winamp-eq" 
+              title="Equalizer"
+              onClick={() => setShowEqualizer(!showEqualizer)}
+            >
+              EQ
+            </button>
+            <button 
+              className="winamp-pl" 
+              title="Playlist"
+              onClick={() => setShowPlaylist(!showPlaylist)}
+            >
+              PL
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Playlist Editor */}
+      <PlaylistEditor
+        isVisible={showPlaylist}
+        onClose={() => setShowPlaylist(false)}
+        onLoadTrack={handlePlaylistTrack}
+      />
+
+      {/* Equalizer */}
+      <Equalizer
+        isVisible={showEqualizer}
+        onClose={() => setShowEqualizer(false)}
+        audioContext={null}
+      />
+    </>
   );
 };
 
