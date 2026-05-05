@@ -81,6 +81,10 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
         </button>
       </div>
 
+      {/* Vertical edge strips compose the side borders */}
+      <div className="pl-edge-left" />
+      <div className="pl-edge-right" />
+
       <div className="pl-content">
         {playlist.map((entry, index) => (
           <div
@@ -92,19 +96,25 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
             {String(index + 1).padStart(2, '0')}. {entry.filename}
           </div>
         ))}
-        {playlist.length === 0 && <div className="pl-empty">PLAYLIST EMPTY — click ADD to load tracks</div>}
+        {playlist.length === 0 && (
+          <div className="pl-empty">PLAYLIST EMPTY — CLICK +FILE TO ADD TRACKS</div>
+        )}
       </div>
 
-      <div className="pl-footer">
-        <div className="pl-footer-bg" />
-        <div className="pl-actions">
-          <button onClick={() => fileInputRef.current?.click()}>+ FILE</button>
-          <button onClick={removeSelected}>REM</button>
-          <button onClick={clearAll}>CLR</button>
-          <div style={{ marginLeft: 'auto', fontSize: 8, color: '#00ff33', alignSelf: 'center' }}>
-            {playlist.length} item{playlist.length === 1 ? '' : 's'}
-          </div>
-        </div>
+      {/* Bottom strip composed of left corner + tiled middle + right corner */}
+      <div className="pl-bottom">
+        <div className="pl-bottom-left" />
+        <div className="pl-bottom-mid" />
+        <div className="pl-bottom-right" />
+      </div>
+
+      <div className="pl-actions">
+        <button onClick={() => fileInputRef.current?.click()}>+ FILE</button>
+        <button onClick={removeSelected}>REM</button>
+        <button onClick={clearAll}>CLR</button>
+      </div>
+      <div className="pl-counter">
+        {playlist.length} item{playlist.length === 1 ? '' : 's'}
       </div>
     </div>
   );

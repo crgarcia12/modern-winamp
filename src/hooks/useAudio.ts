@@ -165,6 +165,23 @@ export const useAudio = () => {
     }));
   }, []);
 
+  // Load audio from a URL (e.g. for the default track shipped with the app)
+  const loadUrl = useCallback((url: string, displayName?: string) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.src = url;
+    const name = displayName ?? url.split('/').pop()?.replace(/\.[^/.]+$/, '') ?? 'TRACK';
+    setAudioState(prev => ({
+      ...prev,
+      fileName: `♫ ${name.toUpperCase()} ♫`,
+      position: 0,
+      currentTime: '00:00',
+      isPlaying: false,
+      isPaused: false,
+      isLoaded: false,
+    }));
+  }, []);
+
   const play = useCallback(() => {
     const audio = audioRef.current;
     if (audio && audio.src) {
@@ -207,6 +224,7 @@ export const useAudio = () => {
     audioRef,
     audioState,
     loadFile,
+    loadUrl,
     play,
     pause,
     stop,

@@ -26,6 +26,7 @@ const App: React.FC = () => {
     audioRef,
     audioState,
     loadFile,
+    loadUrl,
     play,
     pause,
     stop,
@@ -39,9 +40,18 @@ const App: React.FC = () => {
   const skinInputRef = useRef<HTMLInputElement>(null);
 
   const [showPlaylist, setShowPlaylist] = useState(true);
-  const [showEqualizer, setShowEqualizer] = useState(false);
+  const [showEqualizer, setShowEqualizer] = useState(true);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(false);
+
+  // Auto-load the classic "It really whips the llama's ass" sample on mount.
+  // Served from same-origin (public/audio/llama.mp3) to avoid CORS issues.
+  // Use Vite's BASE_URL so the path includes the Liliput proxy prefix.
+  useEffect(() => {
+    const url = `${import.meta.env.BASE_URL}audio/llama.mp3`;
+    loadUrl(url, "It really whips the llama's ass!");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Scrolling marquee for the song title (classic Winamp behavior)
   const baseTitle = audioState.fileName || '*** Winamp 2.x ***';

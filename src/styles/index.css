@@ -21,11 +21,23 @@ html, body {
 #root {
   min-height: 100vh;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 20px 20px 40px;
+  gap: 0;
+}
+
+/* Each Winamp window stacks below the previous one with no extra spacing —
+   matches classic Winamp where docked windows touch each other vertically. */
+.winamp,
+.eq-window,
+.pl-window {
+  margin: 0;
+}
+.eq-window,
+.pl-window {
+  margin-top: 6px;
 }
 
 /* Pixel-art rendering for all sprite bitmaps */
@@ -373,35 +385,94 @@ html, body {
   background: #5a5a5a;
 }
 
-/* ---------- PLAYLIST WINDOW (Pledit.bmp sprite-based) ---------- */
+/* ---------- PLAYLIST WINDOW (Pledit.bmp sprite-based) ----------
+   Pledit.bmp is the classic Winamp sprite atlas (280x186). We compose
+   the playlist window from its parts:
+     - Title bar (top, 20px tall, full-width sprite at y=0)
+     - Left/right vertical edge strips (25px wide, tile vertically)
+     - Bottom strip (38px tall, includes corners + middle fill)
+   This gives the window proper Winamp-style metallic borders. */
 .pl-window {
   position: relative;
   width: 275px;
   height: 232px;
   zoom: 2;
   background: #000;
-  border: 1px solid #000;
   font-family: Arial, sans-serif;
   user-select: none;
+  /* Outer frame keeps the dark metallic edge even when sprite is off */
+  box-shadow: 0 0 0 1px #000;
 }
+
 .pl-titlebar {
   width: 275px; height: 20px;
   background-image: url('/skins/base/Pledit.bmp');
-  background-position: 0 0;
+  background-position: 0 0; /* active titlebar */
   background-repeat: no-repeat;
   position: relative;
   cursor: move;
 }
-.pl-titlebar.inactive {
-  background-position: 0 -21px;
+.pl-titlebar.inactive { background-position: 0 -21px; }
+
+/* Left vertical edge — uses the body-fill column from Pledit.bmp.
+   The classic skin places this region around (0, 42, 25, 29) and tiles. */
+.pl-edge-left {
+  position: absolute;
+  left: 0; top: 20px; bottom: 38px;
+  width: 12px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: 0 -42px;
+  background-repeat: repeat-y;
 }
+.pl-edge-right {
+  position: absolute;
+  right: 0; top: 20px; bottom: 38px;
+  width: 12px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: -255px -42px;
+  background-repeat: repeat-y;
+}
+
+/* Bottom strip with left corner + right corner + middle fill.
+   Composed from three regions of Pledit.bmp at y=72..110. */
+.pl-bottom {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 38px;
+  background: #000;
+}
+.pl-bottom-left {
+  position: absolute;
+  left: 0; top: 0;
+  width: 125px; height: 38px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: 0 -72px;
+  background-repeat: no-repeat;
+}
+.pl-bottom-mid {
+  position: absolute;
+  left: 125px; right: 75px; top: 0;
+  height: 38px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: -125px -72px;
+  background-repeat: repeat-x;
+}
+.pl-bottom-right {
+  position: absolute;
+  right: 0; top: 0;
+  width: 75px; height: 38px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: -204px -72px;
+  background-repeat: no-repeat;
+}
+
 .pl-content {
   position: absolute;
-  left: 0; top: 20px; right: 0; bottom: 38px;
+  left: 12px; right: 12px;
+  top: 20px; bottom: 38px;
   background: #000;
   overflow-y: auto;
-  border-left: 1px solid #000;
-  border-right: 1px solid #000;
+  border: 1px solid #1a1a1a;
   padding: 0;
 }
 .pl-item {
@@ -421,42 +492,40 @@ html, body {
 .pl-empty {
   color: #888;
   text-align: center;
-  font-size: 8px;
+  font-size: 7px;
   padding-top: 50px;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.3px;
 }
 
-.pl-footer {
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  background: #000;
-}
-.pl-footer-bg {
-  position: absolute; inset: 0;
-  background-image: url('/skins/base/Pledit.bmp');
-  background-position: 0 -148px;
-  background-repeat: no-repeat;
-  background-size: 275px 38px;
-}
 .pl-actions {
-  position: relative;
+  position: absolute;
+  left: 6px; bottom: 4px;
+  z-index: 2;
   display: flex;
-  gap: 4px;
-  padding: 4px 8px;
-  z-index: 1;
+  gap: 3px;
+  align-items: center;
 }
 .pl-actions button {
   background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
   border: 1px outset #555;
   color: #fff;
-  font-size: 7px;
-  padding: 2px 5px;
+  font-size: 6px;
+  padding: 1px 4px;
   cursor: pointer;
   font-family: Arial, sans-serif;
+  height: 12px;
+  line-height: 8px;
 }
 .pl-actions button:active { border-style: inset; }
+.pl-counter {
+  position: absolute;
+  right: 8px; bottom: 4px;
+  color: #00ff33;
+  font-size: 7px;
+  z-index: 2;
+  font-family: Arial, sans-serif;
+}
 
 /* ---------- EQUALIZER WINDOW (Eqmain.bmp sprite-based) ---------- */
 .eq-window {
