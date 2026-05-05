@@ -5,7 +5,6 @@ interface PlaylistEntry {
   filename: string;
   duration: string;
   file?: File;
-  url?: string;
 }
 
 interface PlaylistEditorProps {
@@ -14,34 +13,31 @@ interface PlaylistEditorProps {
   onLoadTrack: (entry: PlaylistEntry) => void;
 }
 
-export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({ 
-  isVisible, 
-  onClose, 
-  onLoadTrack 
+export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
+  isVisible,
+  onClose,
+  onLoadTrack,
 }) => {
   const [playlist, setPlaylist] = useState<PlaylistEntry[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addFiles = () => {
-    fileInputRef.current?.click();
-  };
+  if (!isVisible) return null;
 
   const handleFileAdd = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    const newEntries: PlaylistEntry[] = files.map(file => ({
+    const entries: PlaylistEntry[] = files.map((file) => ({
       id: Math.random().toString(36),
       filename: file.name,
       duration: '--:--',
-      file
+      file,
     }));
-    
-    setPlaylist(prev => [...prev, ...newEntries]);
+    setPlaylist((prev) => [...prev, ...entries]);
   };
 
   const removeSelected = () => {
     if (selectedIndex >= 0) {
-      setPlaylist(prev => prev.filter((_, i) => i !== selectedIndex));
+      setPlaylist((prev) => prev.filter((_, i) => i !== selectedIndex));
       setSelectedIndex(-1);
     }
   };
@@ -51,10 +47,8 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
     setSelectedIndex(-1);
   };
 
-  if (!isVisible) return null;
-
   return (
-    <div className="playlist-window">
+    <div className="pl-window">
       <input
         ref={fileInputRef}
         type="file"
@@ -63,45 +57,53 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
         style={{ display: 'none' }}
         onChange={handleFileAdd}
       />
-      
-      {/* Playlist Header */}
-      <div className="playlist-header">
-        <span className="playlist-title">Winamp Playlist Editor</span>
-        <div className="playlist-controls">
-          <button className="playlist-btn" onClick={onClose}>×</button>
-        </div>
+
+      <div className="pl-titlebar">
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 3,
+            right: 6,
+            width: 9,
+            height: 9,
+            background: 'linear-gradient(to bottom,#f0f0f0,#b0b0b0)',
+            border: '1px solid #000',
+            cursor: 'pointer',
+            color: '#000',
+            fontSize: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          ×
+        </button>
       </div>
 
-      {/* Action Buttons */}
-      <div className="playlist-actions">
-        <button className="playlist-action-btn" onClick={addFiles}>Add</button>
-        <button className="playlist-action-btn" onClick={removeSelected}>Rem</button>
-        <button className="playlist-action-btn" onClick={clearAll}>Clr</button>
-        <div className="playlist-info">
-          {playlist.length} files
-        </div>
+      <div className="pl-content">
+        {playlist.map((entry, index) => (
+          <div
+            key={entry.id}
+            className={`pl-item ${selectedIndex === index ? 'selected' : ''}`}
+            onClick={() => setSelectedIndex(index)}
+            onDoubleClick={() => onLoadTrack(entry)}
+          >
+            {String(index + 1).padStart(2, '0')}. {entry.filename}
+          </div>
+        ))}
+        {playlist.length === 0 && <div className="pl-empty">PLAYLIST EMPTY — click ADD to load tracks</div>}
       </div>
 
-      {/* Playlist Items */}
-      <div className="playlist-content">
-        <div className="playlist-items">
-          {playlist.map((entry, index) => (
-            <div
-              key={entry.id}
-              className={`playlist-item ${selectedIndex === index ? 'selected' : ''}`}
-              onClick={() => setSelectedIndex(index)}
-              onDoubleClick={() => onLoadTrack(entry)}
-            >
-              <span className="playlist-number">{index + 1}.</span>
-              <span className="playlist-filename">{entry.filename}</span>
-            </div>
-          ))}
-          
-          {playlist.length === 0 && (
-            <div className="playlist-empty">
-              Click "Add" to load files
-            </div>
-          )}
+      <div className="pl-footer">
+        <div className="pl-footer-bg" />
+        <div className="pl-actions">
+          <button onClick={() => fileInputRef.current?.click()}>+ FILE</button>
+          <button onClick={removeSelected}>REM</button>
+          <button onClick={clearAll}>CLR</button>
+          <div style={{ marginLeft: 'auto', fontSize: 8, color: '#00ff33', alignSelf: 'center' }}>
+            {playlist.length} item{playlist.length === 1 ? '' : 's'}
+          </div>
         </div>
       </div>
     </div>

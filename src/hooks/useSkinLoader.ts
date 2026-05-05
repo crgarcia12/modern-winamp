@@ -1,183 +1,138 @@
+// Real Winamp .wsz skin loader. .wsz files are ZIP archives containing
+// the classic bitmap sprites (MAIN.BMP, CBUTTONS.BMP, …). We unzip with JSZip
+// and rebind the sprite URLs that our CSS references via CSS variables.
+import JSZip from 'jszip';
+
 export interface WinampSkin {
   name: string;
-  mainBitmap: string; // Base64 encoded PNG of main window
-  playlistBitmap?: string;
-  equalizerBitmap?: string;
-  colors?: {
-    visColor1?: string;
-    visColor2?: string;
-    visColor3?: string;
-    backgroundColor?: string;
-  };
-  cursor?: string;
+  files: Record<string, string>; // lowercased filename -> data URL
 }
 
-export interface SkinCoordinates {
-  // Main window coordinates
-  playButton: { x: number; y: number; w: number; h: number };
-  pauseButton: { x: number; y: number; w: number; h: number };
-  stopButton: { x: number; y: number; w: number; h: number };
-  nextButton: { x: number; y: number; w: number; h: number };
-  prevButton: { x: number; y: number; w: number; h: number };
-  ejectButton: { x: number; y: number; w: number; h: number };
-  shuffleButton: { x: number; y: number; w: number; h: number };
-  repeatButton: { x: number; y: number; w: number; h: number };
-  
-  // Display areas
-  timeDisplay: { x: number; y: number; w: number; h: number };
-  songTitle: { x: number; y: number; w: number; h: number };
-  spectrum: { x: number; y: number; w: number; h: number };
-  oscilloscope: { x: number; y: number; w: number; h: number };
-  
-  // Sliders
-  positionSlider: { x: number; y: number; w: number; h: number };
-  volumeSlider: { x: number; y: number; w: number; h: number };
-}
+// Files we care about (case-insensitive). Keys are the canonical names
+// matching what's in /public/skins/base/.
+const SKIN_FILES = [
+  'MAIN.BMP',
+  'CBUTTONS.BMP',
+  'titlebar.bmp',
+  'numbers.bmp',
+  'nums_ex.bmp',
+  'text.bmp',
+  'POSBAR.BMP',
+  'volume.bmp',
+  'BALANCE.BMP',
+  'SHUFREP.BMP',
+  'MONOSTER.BMP',
+  'PLAYPAUS.BMP',
+  'Eqmain.bmp',
+  'eq_ex.bmp',
+  'Pledit.bmp',
+  'gen.bmp',
+  'genex.bmp',
+];
 
-// Default classic Winamp skin coordinates
-export const DEFAULT_SKIN_COORDS: SkinCoordinates = {
-  playButton: { x: 23, y: 18, w: 23, h: 18 },
-  pauseButton: { x: 46, y: 18, w: 23, h: 18 },
-  stopButton: { x: 69, y: 18, w: 23, h: 18 },
-  nextButton: { x: 92, y: 18, w: 23, h: 18 },
-  prevButton: { x: 0, y: 18, w: 23, h: 18 },
-  ejectButton: { x: 115, y: 18, w: 23, h: 18 },
-  shuffleButton: { x: 164, y: 89, w: 47, h: 15 },
-  repeatButton: { x: 211, y: 89, w: 28, h: 15 },
-  
-  timeDisplay: { x: 24, y: 28, w: 63, h: 13 },
-  songTitle: { x: 111, y: 27, w: 153, h: 6 },
-  spectrum: { x: 24, y: 43, w: 76, h: 16 },
-  oscilloscope: { x: 107, y: 43, w: 76, h: 16 },
-  
-  positionSlider: { x: 16, y: 72, w: 248, h: 10 },
-  volumeSlider: { x: 107, y: 57, w: 68, h: 13 }
+// Map lowercased candidate names to the canonical sprite names we use
+const lcMap: Record<string, string> = SKIN_FILES.reduce((acc, n) => {
+  acc[n.toLowerCase()] = n;
+  return acc;
+}, {} as Record<string, string>);
+
+const fileToDataUrl = (blob: Blob, mime: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = reject;
+    r.readAsDataURL(new Blob([blob], { type: mime }));
+  });
+
+const getMime = (name: string): string => {
+  const ext = name.toLowerCase().split('.').pop();
+  if (ext === 'bmp') return 'image/bmp';
+  if (ext === 'png') return 'image/png';
+  if (ext === 'cur') return 'image/x-win-bitmap';
+  return 'application/octet-stream';
 };
 
-export class SkinLoader {
-  private canvas: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
-
-  constructor() {
-    this.canvas = document.createElement('canvas');
-    this.context = this.canvas.getContext('2d')!;
-  }
-
-  async loadSkinFromFile(file: File): Promise<WinampSkin | null> {
-    try {
-      if (file.name.toLowerCase().endsWith('.wsz')) {
-        return await this.parseWSZSkin(file);
-      } else if (file.type.startsWith('image/')) {
-        return await this.parseImageSkin(file);
-      }
-      return null;
-    } catch (error) {
-      console.error('Failed to load skin:', error);
-      return null;
-    }
-  }
-
-  private async parseWSZSkin(file: File): Promise<WinampSkin | null> {
-    // WSZ files are ZIP archives, for now we'll implement basic functionality
-    // In a real implementation, we'd use a ZIP library like JSZip
-    return {
-      name: file.name,
-      mainBitmap: await this.fileToBase64(file),
-    };
-  }
-
-  private async parseImageSkin(file: File): Promise<WinampSkin | null> {
-    const mainBitmap = await this.fileToBase64(file);
-    return {
-      name: file.name,
-      mainBitmap,
-    };
-  }
-
-  private async fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  // Extract a specific region from the skin bitmap
-  extractRegion(skinBitmap: string, coords: { x: number; y: number; w: number; h: number }): Promise<string> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        this.canvas.width = coords.w;
-        this.canvas.height = coords.h;
-        this.context.drawImage(img, coords.x, coords.y, coords.w, coords.h, 0, 0, coords.w, coords.h);
-        resolve(this.canvas.toDataURL());
-      };
-      img.src = skinBitmap;
-    });
-  }
-
-  // Generate CSS for a skinned element
-  generateSkinCSS(skinBitmap: string, coords: { x: number; y: number; w: number; h: number }, selector: string): string {
-    return `
-    ${selector} {
-      background-image: url('${skinBitmap}');
-      background-position: -${coords.x}px -${coords.y}px;
-      width: ${coords.w}px;
-      height: ${coords.h}px;
-      background-repeat: no-repeat;
-    }`;
-  }
+async function parseWSZ(file: File | Blob, name = 'skin.wsz'): Promise<WinampSkin> {
+  const zip = await JSZip.loadAsync(file);
+  const out: Record<string, string> = {};
+  await Promise.all(
+    Object.keys(zip.files).map(async (path) => {
+      const entry = zip.files[path];
+      if (entry.dir) return;
+      const base = path.split('/').pop()!.toLowerCase();
+      const canonical = lcMap[base];
+      if (!canonical) return;
+      const blob = await entry.async('blob');
+      out[canonical] = await fileToDataUrl(blob, getMime(canonical));
+    })
+  );
+  return { name, files: out };
 }
 
-// Hook to manage skin loading
+// Apply skin by injecting CSS that overrides the background-image of each
+// sprite class. We use the data URLs from the .wsz instead of /skins/base/.
+function injectSkinCss(skin: WinampSkin) {
+  const id = 'winamp-skin-style';
+  document.getElementById(id)?.remove();
+  const style = document.createElement('style');
+  style.id = id;
+
+  const rules: string[] = [];
+  const url = (n: string) => skin.files[n];
+
+  if (url('MAIN.BMP'))      rules.push(`.winamp{background-image:url('${url('MAIN.BMP')}')!important}`);
+  if (url('CBUTTONS.BMP'))  rules.push(`.wa-cbtn{background-image:url('${url('CBUTTONS.BMP')}')!important}`);
+  if (url('titlebar.bmp')) {
+    rules.push(`.wa-titlebar,.wa-tb-btn{background-image:url('${url('titlebar.bmp')}')!important}`);
+  }
+  if (url('numbers.bmp'))   rules.push(`.wa-digit{background-image:url('${url('numbers.bmp')}')!important}`);
+  if (url('POSBAR.BMP'))    rules.push(`.wa-pos,.wa-pos-thumb{background-image:url('${url('POSBAR.BMP')}')!important}`);
+  if (url('volume.bmp'))    rules.push(`.wa-volume,.wa-volume-thumb{background-image:url('${url('volume.bmp')}')!important}`);
+  if (url('BALANCE.BMP'))   rules.push(`.wa-balance,.wa-balance-thumb{background-image:url('${url('BALANCE.BMP')}')!important}`);
+  if (url('SHUFREP.BMP')) {
+    rules.push(`.wa-eq-btn,.wa-pl-btn,.wa-shuffle,.wa-repeat{background-image:url('${url('SHUFREP.BMP')}')!important}`);
+  }
+  if (url('MONOSTER.BMP')) rules.push(`.wa-mono,.wa-stereo,.wa-monoster{background-image:url('${url('MONOSTER.BMP')}')!important}`);
+  if (url('PLAYPAUS.BMP')) rules.push(`.wa-status{background-image:url('${url('PLAYPAUS.BMP')}')!important}`);
+  if (url('Eqmain.bmp')) {
+    rules.push(`.eq-window,.eq-titlebar,.eq-on,.eq-auto{background-image:url('${url('Eqmain.bmp')}')!important}`);
+  }
+  if (url('Pledit.bmp')) {
+    rules.push(`.pl-titlebar,.pl-footer-bg{background-image:url('${url('Pledit.bmp')}')!important}`);
+  }
+
+  style.textContent = rules.join('\n');
+  document.head.appendChild(style);
+}
+
 export const useSkinLoader = () => {
-  const loader = new SkinLoader();
-
   const loadSkin = async (file: File): Promise<WinampSkin | null> => {
-    return await loader.loadSkinFromFile(file);
+    try {
+      const lower = file.name.toLowerCase();
+      if (lower.endsWith('.wsz') || lower.endsWith('.zip')) {
+        return await parseWSZ(file, file.name);
+      }
+      // Single image fallback: treat as MAIN.BMP only
+      if (file.type.startsWith('image/')) {
+        const url = await fileToDataUrl(file, file.type);
+        return { name: file.name, files: { 'MAIN.BMP': url } };
+      }
+      console.warn('Unsupported skin format:', file.name);
+      return null;
+    } catch (err) {
+      console.error('Failed to load skin:', err);
+      return null;
+    }
   };
 
-  const applySkin = (skin: WinampSkin, coordinates: SkinCoordinates = DEFAULT_SKIN_COORDS) => {
-    // Apply skin to the Winamp interface
-    const style = document.createElement('style');
-    style.id = 'winamp-skin-style';
-    
-    // Remove existing skin style
-    const existingStyle = document.getElementById('winamp-skin-style');
-    if (existingStyle) {
-      existingStyle.remove();
-    }
-
-    // Generate CSS for skinned elements
-    let css = `
-    .winamp {
-      background-image: url('${skin.mainBitmap}');
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-    
-    .winamp-button {
-      background-image: url('${skin.mainBitmap}');
-      background-repeat: no-repeat;
-      border: none;
-    }
-    `;
-
-    style.textContent = css;
-    document.head.appendChild(style);
-  };
+  const applySkin = (skin: WinampSkin) => injectSkinCss(skin);
 
   const resetToDefaultSkin = () => {
-    const existingStyle = document.getElementById('winamp-skin-style');
-    if (existingStyle) {
-      existingStyle.remove();
-    }
+    document.getElementById('winamp-skin-style')?.remove();
   };
 
-  return {
-    loadSkin,
-    applySkin,
-    resetToDefaultSkin
-  };
+  return { loadSkin, applySkin, resetToDefaultSkin };
 };
+
+// Re-export for legacy imports (no-op default coords kept for compat)
+export const DEFAULT_SKIN_COORDS = {};

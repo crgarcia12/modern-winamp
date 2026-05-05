@@ -6,142 +6,129 @@ interface EqualizerProps {
   audioContext: AudioContext | null;
 }
 
-const EQ_BANDS = [
-  { freq: '60', label: '60' },
-  { freq: '170', label: '170' },
-  { freq: '310', label: '310' },
-  { freq: '600', label: '600' },
-  { freq: '1K', label: '1K' },
-  { freq: '3K', label: '3K' },
-  { freq: '6K', label: '6K' },
-  { freq: '12K', label: '12K' },
-  { freq: '14K', label: '14K' },
-  { freq: '16K', label: '16K' }
-];
+const EQ_BANDS = ['60', '170', '310', '600', '1K', '3K', '6K', '12K', '14K', '16K'];
 
-const EQ_PRESETS = [
-  { name: 'Default', values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  { name: 'Rock', values: [8, 4, -5, -8, -3, 4, 8, 11, 11, 11] },
-  { name: 'Pop', values: [-1, 4, 7, 8, 5, 0, -2, -2, -1, -1] },
-  { name: 'Jazz', values: [4, 2, -2, 2, -1, -1, 0, 2, 4, 6] },
-  { name: 'Classical', values: [5, 3, -2, 4, -1, -1, 0, 3, 7, 9] },
-  { name: 'Dance', values: [9, 7, 2, 0, 0, -5, -7, -7, 0, 0] },
-  { name: 'Full Bass', values: [7, 9, 9, 5, 1, -4, -8, -10, -11, -11] },
-  { name: 'Full Treble', values: [-9, -9, -9, -4, 2, 11, 16, 16, 16, 16] }
-];
+const EQ_PRESETS: Record<string, number[]> = {
+  Default:     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  Rock:        [8, 4, -5, -8, -3, 4, 8, 11, 11, 11],
+  Pop:         [-1, 4, 7, 8, 5, 0, -2, -2, -1, -1],
+  Jazz:        [4, 2, -2, 2, -1, -1, 0, 2, 4, 6],
+  Classical:   [5, 3, -2, 4, -1, -1, 0, 3, 7, 9],
+  Dance:       [9, 7, 2, 0, 0, -5, -7, -7, 0, 0],
+  'Full Bass': [7, 9, 9, 5, 1, -4, -8, -10, -11, -11],
+  'Full Treble': [-9, -9, -9, -4, 2, 11, 16, 16, 16, 16],
+};
 
-export const Equalizer: React.FC<EqualizerProps> = ({ 
-  isVisible, 
-  onClose, 
-  audioContext 
-}) => {
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [preamp, setPreamp] = useState(0);
-  const [bandValues, setBandValues] = useState(Array(10).fill(0));
-  const [selectedPreset, setSelectedPreset] = useState('Default');
+export const Equalizer: React.FC<EqualizerProps> = ({ isVisible, onClose }) => {
+  const [enabled, setEnabled] = useState(false);
   const [autoMode, setAutoMode] = useState(false);
-
-  const updateBand = (index: number, value: number) => {
-    const newValues = [...bandValues];
-    newValues[index] = value;
-    setBandValues(newValues);
-  };
-
-  const applyPreset = (presetName: string) => {
-    const preset = EQ_PRESETS.find(p => p.name === presetName);
-    if (preset) {
-      setBandValues([...preset.values]);
-      setSelectedPreset(presetName);
-    }
-  };
-
-  const resetEQ = () => {
-    setBandValues(Array(10).fill(0));
-    setPreamp(0);
-    setSelectedPreset('Default');
-  };
+  const [preamp, setPreamp] = useState(0);
+  const [values, setValues] = useState<number[]>(Array(10).fill(0));
+  const [preset, setPreset] = useState('Default');
 
   if (!isVisible) return null;
 
+  const applyPreset = (name: string) => {
+    setPreset(name);
+    setValues(EQ_PRESETS[name] ?? Array(10).fill(0));
+  };
+
+  const setBand = (i: number, v: number) => {
+    const next = values.slice();
+    next[i] = v;
+    setValues(next);
+  };
+
   return (
-    <div className="equalizer-window">
-      {/* EQ Header */}
-      <div className="eq-header">
-        <span className="eq-title">Winamp Equalizer</span>
-        <div className="eq-controls">
-          <button className="eq-btn" onClick={onClose}>×</button>
-        </div>
+    <div className="eq-window">
+      <div className="eq-titlebar">
+        <button className="eq-close-btn" onClick={onClose} title="Close">×</button>
       </div>
 
-      {/* Main Controls */}
-      <div className="eq-main-controls">
-        <button 
-          className={`eq-power-btn ${isEnabled ? 'enabled' : ''}`}
-          onClick={() => setIsEnabled(!isEnabled)}
-        >
-          ON
-        </button>
-        <button 
-          className={`eq-auto-btn ${autoMode ? 'enabled' : ''}`}
-          onClick={() => setAutoMode(!autoMode)}
-        >
-          AUTO
-        </button>
-        <select 
-          className="eq-preset-select"
-          value={selectedPreset}
-          onChange={(e) => applyPreset(e.target.value)}
-        >
-          {EQ_PRESETS.map(preset => (
-            <option key={preset.name} value={preset.name}>
-              {preset.name}
-            </option>
-          ))}
-        </select>
-        <button className="eq-reset-btn" onClick={resetEQ}>
-          Reset
-        </button>
-      </div>
+      <button
+        className={`eq-on ${enabled ? 'active' : ''}`}
+        onClick={() => setEnabled((v) => !v)}
+        title="On/Off"
+      />
+      <button
+        className={`eq-auto ${autoMode ? 'active' : ''}`}
+        onClick={() => setAutoMode((v) => !v)}
+        title="Auto"
+      />
 
-      {/* Preamp */}
-      <div className="eq-preamp-section">
-        <label>Preamp</label>
-        <input
-          type="range"
-          min="-20"
-          max="20"
-          value={preamp}
-          onChange={(e) => setPreamp(Number(e.target.value))}
-          className="eq-preamp-slider"
-          orient="vertical"
-        />
-        <span className="eq-value">{preamp > 0 ? '+' : ''}{preamp}</span>
-      </div>
+      <select
+        className="eq-presets"
+        value={preset}
+        onChange={(e) => applyPreset(e.target.value)}
+      >
+        {Object.keys(EQ_PRESETS).map((p) => (
+          <option key={p} value={p}>{p}</option>
+        ))}
+      </select>
 
-      {/* EQ Bands */}
+      {/* Preamp slider rendered to the LEFT of the bands (band 0 sentinel) */}
       <div className="eq-bands">
-        {EQ_BANDS.map((band, index) => (
-          <div key={band.freq} className="eq-band">
+        <div className="eq-band" title={`Preamp: ${preamp}dB`}>
+          <input
+            type="range"
+            min={-12}
+            max={12}
+            value={preamp}
+            onChange={(e) => setPreamp(parseInt(e.target.value, 10))}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0, left: 4,
+              width: 3,
+              height: 64,
+              background: '#222',
+              border: '1px inset #555',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              width: 11, height: 11,
+              background: 'linear-gradient(to bottom,#aaa,#444)',
+              border: '1px outset #777',
+              top: `${Math.round(((12 - preamp) / 24) * (64 - 11))}px`,
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
+        {EQ_BANDS.map((label, i) => (
+          <div className="eq-band" key={label} title={`${label}Hz: ${values[i]}dB`}>
             <input
               type="range"
-              min="-20"
-              max="20"
-              value={bandValues[index]}
-              onChange={(e) => updateBand(index, Number(e.target.value))}
-              className="eq-band-slider"
-              orient="vertical"
+              min={-12}
+              max={12}
+              value={values[i]}
+              onChange={(e) => setBand(i, parseInt(e.target.value, 10))}
             />
-            <span className="eq-band-value">
-              {bandValues[index] > 0 ? '+' : ''}{bandValues[index]}
-            </span>
-            <label className="eq-band-label">{band.label}</label>
+            <div
+              style={{
+                position: 'absolute',
+                top: 0, left: 4,
+                width: 3, height: 64,
+                background: '#222',
+                border: '1px inset #555',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                width: 11, height: 11,
+                background: 'linear-gradient(to bottom,#aaa,#444)',
+                border: '1px outset #777',
+                top: `${Math.round(((12 - values[i]) / 24) * (64 - 11))}px`,
+                pointerEvents: 'none',
+              }}
+            />
           </div>
         ))}
-      </div>
-
-      {/* Status */}
-      <div className="eq-status">
-        EQ {isEnabled ? 'ENABLED' : 'DISABLED'} • Preset: {selectedPreset}
       </div>
     </div>
   );

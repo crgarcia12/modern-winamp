@@ -1,9 +1,25 @@
-// Enhanced Winamp v3.0 - Complete with Playlist & Equalizer
-import React, { useRef, useState } from 'react';
+// Authentic Winamp 2.x classic — pixel-perfect bitmap sprite UI
+import React, { useRef, useState, useEffect } from 'react';
 import { useAudio } from './hooks/useAudio';
 import { useSkinLoader } from './hooks/useSkinLoader';
 import { PlaylistEditor } from './components/PlaylistEditor';
 import { Equalizer } from './components/Equalizer';
+
+// Render two zero-padded digits using NUMBERS.BMP sprite (cells 9x13)
+const Digits: React.FC<{ value: number; pad?: number }> = ({ value, pad = 2 }) => {
+  const str = String(Math.max(0, Math.floor(value))).padStart(pad, '0').slice(-pad);
+  return (
+    <>
+      {str.split('').map((d, i) => (
+        <div
+          key={i}
+          className="wa-digit"
+          style={{ backgroundPosition: `-${parseInt(d, 10) * 9}px 0` }}
+        />
+      ))}
+    </>
+  );
+};
 
 const App: React.FC = () => {
   const {
@@ -14,275 +30,272 @@ const App: React.FC = () => {
     pause,
     stop,
     seek,
-    setVolume
+    setVolume,
   } = useAudio();
 
-  const {
-    loadSkin,
-    applySkin,
-    resetToDefaultSkin
-  } = useSkinLoader();
+  const { loadSkin, applySkin, resetToDefaultSkin } = useSkinLoader();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const skinInputRef = useRef<HTMLInputElement>(null);
-  
-  // Window visibility states
-  const [showPlaylist, setShowPlaylist] = useState(false);
+
+  const [showPlaylist, setShowPlaylist] = useState(true);
   const [showEqualizer, setShowEqualizer] = useState(false);
+  const [shuffle, setShuffle] = useState(false);
+  const [repeat, setRepeat] = useState(false);
 
-  // Scrolling title effect for filename
-  const [scrollingTitle, setScrollingTitle] = React.useState('***** WINAMP 5.666 ***** ');
+  // Scrolling marquee for the song title (classic Winamp behavior)
+  const baseTitle = audioState.fileName || '*** Winamp 2.x ***';
+  const [scroll, setScroll] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setScroll((s) => s + 1), 220);
+    return () => clearInterval(id);
+  }, []);
+  const padded = '   ' + baseTitle + '   ***   ';
+  const cycle = padded.length > 30 ? padded : padded.padEnd(30, ' ');
+  const offset = scroll % cycle.length;
+  const marquee = (cycle + cycle).substring(offset, offset + 30);
 
-  React.useEffect(() => {
-    const fullTitle = audioState.fileName.length > 30 ? audioState.fileName : audioState.fileName + ' '.repeat(30);
-    let scrollIndex = 0;
-    
-    const scrollInterval = setInterval(() => {
-      setScrollingTitle(fullTitle.substring(scrollIndex, scrollIndex + 30));
-      scrollIndex = (scrollIndex + 1) % fullTitle.length;
-    }, 300);
+  // Parse "MM:SS" current time
+  const [mmStr, ssStr] = (audioState.currentTime || '00:00').split(':');
+  const minutes = parseInt(mmStr, 10) || 0;
+  const seconds = parseInt(ssStr, 10) || 0;
 
-    return () => clearInterval(scrollInterval);
-  }, [audioState.fileName]);
-
-  // Event handlers using new audio engine
-  const handleFileOpen = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      loadFile(file);
-    }
-  };
-
-  const handleSkinOpen = () => {
-    skinInputRef.current?.click();
-  };
-
-  const handleSkinSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const skin = await loadSkin(file);
-      if (skin) {
-        applySkin(skin);
-      }
-    }
-  };
-
-  const handlePlaylistTrack = (entry: any) => {
-    if (entry.file) {
-      loadFile(entry.file);
-    }
-  };
-
-  const handleVolumeChange = (event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const newVolume = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
-    setVolume(newVolume);
-  };
-
-  const handlePositionChange = (event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const newPosition = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
-    seek(newPosition);
-  };
-
-  // Generate real spectrum visualization from audio data
+  // Spectrum bars (19 bars to fit 76px / 4px each)
+  const NUM_BARS = 19;
   const renderSpectrum = () => {
-    const bars = [];
-    const dataStep = Math.floor(audioState.frequencyData.length / 20);
-    
-    for (let i = 0; i < 20; i++) {
-      const value = audioState.frequencyData[i * dataStep] || 0;
-      const height = Math.max(1, (value / 255) * 16);
-      bars.push(
-        <div
-          key={i}
-          className="winamp-spectrum-bar"
-          style={{
-            height: `${height}px`,
-            background: height > 8 
-              ? 'linear-gradient(to bottom, #ff0000 0%, #ff6600 50%, #ffff00 100%)'
-              : 'linear-gradient(to bottom, #00ff41 0%, #00aa00 100%)'
-          }}
-        />
-      );
+    const bars: JSX.Element[] = [];
+    const step = Math.max(1, Math.floor(audioState.frequencyData.length / NUM_BARS));
+    for (let i = 0; i < NUM_BARS; i++) {
+      const v = audioState.frequencyData[i * step] || 0;
+      const h = Math.max(1, Math.round((v / 255) * 16));
+      bars.push(<div key={i} className="wa-vis-bar" style={{ height: `${h}px` }} />);
     }
     return bars;
   };
 
-  // Generate real oscilloscope visualization
+  // Oscilloscope SVG path
   const renderOscilloscope = () => {
-    if (audioState.timeDomainData.length === 0) {
-      return null;
+    const data = audioState.timeDomainData;
+    if (!data || data.length === 0) return null;
+    const step = Math.max(1, Math.floor(data.length / 76));
+    const points: string[] = [];
+    for (let x = 0; x < 76; x++) {
+      const v = (data[x * step] ?? 128) / 128 - 1; // -1..1
+      const y = 8 + v * 7;
+      points.push(`${x === 0 ? 'M' : 'L'}${x},${y.toFixed(1)}`);
     }
-
-    const points = [];
-    const sliceWidth = 76 / audioState.timeDomainData.length;
-    let x = 0;
-
-    for (let i = 0; i < audioState.timeDomainData.length; i++) {
-      const v = audioState.timeDomainData[i] / 128.0;
-      const y = v * 8;
-      
-      if (i === 0) {
-        points.push(`M${x},${y + 8}`);
-      } else {
-        points.push(`L${x},${y + 8}`);
-      }
-      x += sliceWidth;
-    }
-
     return (
-      <svg width="76" height="16" style={{ position: 'absolute', top: 0, left: 0 }}>
-        <path
-          d={points.join(' ')}
-          stroke="#00ff41"
-          strokeWidth="1"
-          fill="none"
-          style={{ filter: 'drop-shadow(0 0 2px #00ff41)' }}
-        />
+      <svg className="wa-vis-osc" viewBox="0 0 76 16" preserveAspectRatio="none">
+        <path d={points.join(' ')} stroke="#ffd400" strokeWidth="1" fill="none" />
       </svg>
     );
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) loadFile(f);
+  };
+  const handleSkinSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      const skin = await loadSkin(f);
+      if (skin) applySkin(skin);
+    }
+  };
+
+  const onPosClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    seek(Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100)));
+  };
+  const onVolClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    setVolume(Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100)));
+  };
+
+  // Volume.bmp: 28 frames of 68x15 stacked vertically; pick the right one
+  const volFrame = Math.min(27, Math.floor((audioState.volume / 100) * 27));
+  const volumeStyle: React.CSSProperties = {
+    backgroundPosition: `0 -${volFrame * 15}px`,
+  };
+  // Thumb position inside the 68px-wide track (thumb is 14px wide)
+  const volThumbX = Math.round((audioState.volume / 100) * (68 - 14));
+
+  // Position thumb (track 248px, thumb 29px)
+  const posThumbX = Math.round((audioState.position / 100) * (248 - 29));
+
+  // Play status indicator: stop / play / pause
+  const statusClass = audioState.isPlaying
+    ? 'playing'
+    : audioState.isPaused
+    ? 'paused'
+    : 'stopped';
+
   return (
     <>
-      <div className="winamp">
-        {/* Hidden audio element */}
+      <div className="winamp" id="main-window">
         <audio ref={audioRef} />
-        
-        {/* File inputs */}
         <input
           ref={fileInputRef}
           type="file"
           accept="audio/*"
-          style={{ display: 'none' }}
+          className="wa-hidden"
           onChange={handleFileSelect}
         />
         <input
           ref={skinInputRef}
           type="file"
           accept=".wsz,image/*"
-          style={{ display: 'none' }}
+          className="wa-hidden"
           onChange={handleSkinSelect}
         />
-        
-        {/* Title Bar */}
-        <div className="winamp-titlebar">
-          <span className="winamp-title">Winamp</span>
-          <div className="winamp-close">×</div>
+
+        {/* Titlebar with active blue gradient + close/shade/min */}
+        <div className="wa-titlebar">
+          <div className="wa-tb-btn wa-tb-min" title="Minimize" />
+          <div className="wa-tb-btn wa-tb-shade" title="Windowshade" />
+          <div className="wa-tb-btn wa-tb-close" title="Close" />
         </div>
 
-        {/* Display */}
-        <div className="winamp-display">
-          {/* Spectrum Analyzer with real data */}
-          <div className="winamp-spectrum">
-            {renderSpectrum()}
-          </div>
+        {/* Clutterbar (decorative, baked into MAIN.BMP for cells; we leave bare) */}
 
-          <div className="winamp-time">{audioState.currentTime}</div>
+        {/* Play status little square */}
+        <div className={`wa-status ${statusClass}`} />
 
-          {/* Oscilloscope with real data */}
-          <div className="winamp-oscilloscope">
-            {renderOscilloscope()}
-          </div>
-
-          <div className="winamp-song-info">{scrollingTitle.substring(0, 25)}</div>
-          <div className="winamp-kbps">
-            {audioState.isLoaded ? `${audioState.duration} • stereo` : '128 kbps • 44 kHz • stereo'}
-          </div>
+        {/* Time display: MM : SS using NUMBERS.BMP */}
+        <div
+          className={`wa-time ${audioState.isPaused ? 'paused' : ''}`}
+          onDoubleClick={() => fileInputRef.current?.click()}
+          title="Double-click to open file"
+        >
+          <Digits value={minutes} pad={2} />
+          <div className="wa-digit-gap" />
+          <Digits value={seconds} pad={2} />
         </div>
 
-        {/* Controls */}
-        <div className="winamp-controls">
-          <button className="winamp-button" onClick={stop} title="Previous">❮❮</button>
-          <button 
-            className="winamp-button" 
-            onClick={play} 
-            title="Play"
-            disabled={!audioState.isLoaded}
-          >
-            ▶
-          </button>
-          <button 
-            className="winamp-button" 
-            onClick={pause} 
-            title="Pause"
-            disabled={!audioState.isPlaying}
-          >
-            ⏸
-          </button>
-          <button className="winamp-button" onClick={stop} title="Stop">⏹</button>
-          <button className="winamp-button" onClick={stop} title="Next">❯❯</button>
-          
-          <button className="winamp-button" onClick={handleFileOpen} title="Open File">📁</button>
-          <button className="winamp-button" onClick={handleSkinOpen} title="Load Skin">🎨</button>
-          <button className="winamp-button" onClick={resetToDefaultSkin} title="Reset Skin">🔄</button>
-        </div>
-
-        {/* Position Slider */}
-        <div className="winamp-position">
-          <div className="winamp-slider" onClick={handlePositionChange}>
-            <div className="winamp-slider-track"></div>
-            <div 
-              className="winamp-slider-thumb" 
-              style={{ left: `${Math.max(0, audioState.position - 2)}%` }}
-            ></div>
+        {/* Visualization (spectrum) */}
+        <div className="wa-vis" title="Click to load file" onClick={() => fileInputRef.current?.click()}>
+          {renderSpectrum()}
+          <div style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
+            {/* Optionally overlay oscilloscope ghost */}
+            {/* {renderOscilloscope()} */}
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="winamp-bottom">
-          <div className="winamp-volume">
-            <span style={{ fontSize: '8px', color: '#ddd' }}>Volume:</span>
-            <div className="winamp-volume-slider" onClick={handleVolumeChange}>
-              <div className="winamp-slider-track"></div>
-              <div 
-                className="winamp-slider-thumb" 
-                style={{ left: `${Math.max(0, audioState.volume - 2)}%` }}
-              ></div>
-            </div>
-          </div>
+        {/* Song title scrolling marquee */}
+        <div className="wa-songtitle">{marquee}</div>
 
-          <div className="winamp-mono-stereo">
-            {audioState.isLoaded ? 'STEREO' : 'STEREO'}
-          </div>
+        {/* Bitrate / kHz */}
+        <div className="wa-kbps">128</div>
+        <div className="wa-khz">44</div>
 
-          <div className="winamp-eq-pl">
-            <button 
-              className="winamp-eq" 
-              title="Equalizer"
-              onClick={() => setShowEqualizer(!showEqualizer)}
-            >
-              EQ
-            </button>
-            <button 
-              className="winamp-pl" 
-              title="Playlist"
-              onClick={() => setShowPlaylist(!showPlaylist)}
-            >
-              PL
-            </button>
-          </div>
+        {/* Mono / Stereo (stereo always on when loaded) */}
+        <div className={`wa-mono ${!audioState.isLoaded ? 'on' : ''}`} />
+        <div className={`wa-stereo ${audioState.isLoaded ? 'on' : ''}`} />
+
+        {/* Volume slider (clickable track) */}
+        <div className="wa-volume" style={volumeStyle} onClick={onVolClick} title="Volume">
+          <div className="wa-volume-thumb" style={{ left: `${volThumbX}px` }} />
         </div>
+
+        {/* Balance (decorative, centered) */}
+        <div className="wa-balance" title="Balance">
+          <div className="wa-balance-thumb" style={{ left: '12px' }} />
+        </div>
+
+        {/* EQ + PL toggle */}
+        <button
+          className={`wa-eq-btn ${showEqualizer ? 'on' : ''}`}
+          onClick={() => setShowEqualizer((v) => !v)}
+          title="Equalizer"
+        />
+        <button
+          className={`wa-pl-btn ${showPlaylist ? 'on' : ''}`}
+          onClick={() => setShowPlaylist((v) => !v)}
+          title="Playlist"
+        />
+
+        {/* Position slider */}
+        <div className="wa-pos" onClick={onPosClick} title="Seek">
+          <div className="wa-pos-thumb" style={{ left: `${posThumbX}px` }} />
+        </div>
+
+        {/* Transport buttons */}
+        <button className="wa-cbtn wa-prev"  onClick={stop} title="Previous" />
+        <button className="wa-cbtn wa-play"  onClick={play} title="Play" />
+        <button className="wa-cbtn wa-pause" onClick={pause} title="Pause" />
+        <button className="wa-cbtn wa-stop"  onClick={stop} title="Stop" />
+        <button className="wa-cbtn wa-next"  onClick={stop} title="Next" />
+        <button className="wa-cbtn wa-eject" onClick={() => fileInputRef.current?.click()} title="Eject / Open File" />
+
+        {/* Shuffle / Repeat */}
+        <button
+          className={`wa-shuffle ${shuffle ? 'on' : ''}`}
+          onClick={() => setShuffle((v) => !v)}
+          title="Shuffle"
+        />
+        <button
+          className={`wa-repeat ${repeat ? 'on' : ''}`}
+          onClick={() => setRepeat((v) => !v)}
+          title="Repeat"
+        />
+
+        {/* Hidden skin loader trigger via right-click on titlebar */}
+        <div
+          style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            skinInputRef.current?.click();
+          }}
+        />
       </div>
 
-      {/* Playlist Editor */}
-      <PlaylistEditor
-        isVisible={showPlaylist}
-        onClose={() => setShowPlaylist(false)}
-        onLoadTrack={handlePlaylistTrack}
-      />
+      {/* Playlist & Equalizer windows */}
+      {showPlaylist && (
+        <PlaylistEditor
+          isVisible={showPlaylist}
+          onClose={() => setShowPlaylist(false)}
+          onLoadTrack={(entry: any) => entry?.file && loadFile(entry.file)}
+        />
+      )}
+      {showEqualizer && (
+        <Equalizer
+          isVisible={showEqualizer}
+          onClose={() => setShowEqualizer(false)}
+          audioContext={null}
+        />
+      )}
 
-      {/* Equalizer */}
-      <Equalizer
-        isVisible={showEqualizer}
-        onClose={() => setShowEqualizer(false)}
-        audioContext={null}
-      />
+      {/* Toolbar buttons below for skin/file load (small classic dock) */}
+      <div style={{ position: 'fixed', bottom: 8, right: 8, display: 'flex', gap: 6, zIndex: 100 }}>
+        <button
+          onClick={() => skinInputRef.current?.click()}
+          style={{
+            background: 'linear-gradient(to bottom,#5a5a5a,#2a2a2a)',
+            color: '#fff',
+            border: '1px outset #555',
+            padding: '4px 8px',
+            fontSize: '11px',
+            cursor: 'pointer',
+            fontFamily: 'Arial,sans-serif',
+          }}
+        >
+          Load .wsz Skin
+        </button>
+        <button
+          onClick={resetToDefaultSkin}
+          style={{
+            background: 'linear-gradient(to bottom,#5a5a5a,#2a2a2a)',
+            color: '#fff',
+            border: '1px outset #555',
+            padding: '4px 8px',
+            fontSize: '11px',
+            cursor: 'pointer',
+            fontFamily: 'Arial,sans-serif',
+          }}
+        >
+          Reset Skin
+        </button>
+      </div>
     </>
   );
 };

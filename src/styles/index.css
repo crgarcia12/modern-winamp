@@ -1,577 +1,558 @@
-body {
+/* Authentic Winamp 2.x classic skin — uses original bitmap sprites */
+
+@font-face {
+  font-family: 'Arial';
+  src: local('Arial');
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  font-family: 'MS Sans Serif', sans-serif;
+  background: #000;
+  font-family: Arial, 'MS Sans Serif', sans-serif;
   font-size: 11px;
-  background: #008080;
-  overflow: hidden;
+  color: #fff;
+  overflow: auto;
+  min-height: 100vh;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 #root {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  gap: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
+/* Pixel-art rendering for all sprite bitmaps */
+.winamp,
+.winamp *,
+.pl-window,
+.pl-window *,
+.eq-window,
+.eq-window * {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ---------- MAIN WINDOW (275x116, scaled 2x) ---------- */
 .winamp {
-  /* Authentic Winamp classic skin with proper bitmap styling */
-  background: linear-gradient(135deg, 
-    #404040 0%, 
-    #303030 25%, 
-    #202020 50%, 
-    #181818 75%, 
-    #101010 100%
-  );
-  border: 1px solid #000;
+  position: relative;
   width: 275px;
   height: 116px;
-  position: relative;
-  cursor: default;
+  zoom: 2;
+  background-image: url('/skins/base/MAIN.BMP');
+  background-repeat: no-repeat;
+  background-position: 0 0;
   user-select: none;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-  /* Classic Winamp metallic frame */
-  border-image: linear-gradient(45deg, #666, #333, #000) 1;
+  cursor: default;
+  font-family: Arial, sans-serif;
 }
 
-.winamp-titlebar {
-  height: 14px;
-  /* Authentic Winamp classic titlebar */
-  background: linear-gradient(to bottom, 
-    #0066cc 0%, 
-    #004499 50%, 
-    #002266 100%
-  );
+/* ---------- TITLEBAR (active overlay) ---------- */
+.wa-titlebar {
+  position: absolute;
+  left: 0; top: 0;
+  width: 275px; height: 14px;
+  background-image: url('/skins/base/titlebar.bmp');
+  background-position: -27px 0;
+  background-repeat: no-repeat;
+  cursor: move;
+}
+.wa-titlebar.inactive {
+  background-position: -27px -15px;
+}
+
+/* Tiny titlebar buttons (close, shade, minimize) — sprites in titlebar.bmp */
+.wa-tb-btn {
+  position: absolute;
+  background-image: url('/skins/base/titlebar.bmp');
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.wa-tb-close {
+  top: 3px; right: 3px;
+  width: 9px; height: 9px;
+  background-position: -18px 0;
+}
+.wa-tb-close:active { background-position: -18px -9px; }
+
+.wa-tb-shade {
+  top: 3px; right: 14px;
+  width: 9px; height: 9px;
+  background-position: 0 -18px;
+}
+.wa-tb-shade:active { background-position: -9px -18px; }
+
+.wa-tb-min {
+  top: 3px; right: 25px;
+  width: 9px; height: 9px;
+  background-position: -9px 0;
+}
+.wa-tb-min:active { background-position: -9px -9px; }
+
+/* Clutterbar (mini O A I D V buttons on far left of display) */
+.wa-clutter {
+  position: absolute;
+  left: 10px; top: 22px;
+  width: 8px; height: 43px;
+  background-image: url('/skins/base/MAIN.BMP');
+  background-position: -304px 0;
+  background-repeat: no-repeat;
+}
+
+/* ---------- DISPLAY: time digits (NUMBERS.BMP, 9x13 cells) ---------- */
+.wa-time {
+  position: absolute;
+  left: 36px; top: 26px;
   display: flex;
-  align-items: center;
-  padding: 0 4px;
-  position: relative;
-  border-bottom: 1px solid #000;
-  box-shadow: inset 0 1px 0 rgba(70, 130, 180, 0.6);
+  gap: 0;
+  height: 13px;
+  cursor: pointer;
 }
 
-.winamp-title {
-  color: #ffffff;
-  font-size: 8px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0,0,0,1);
+.wa-digit {
+  width: 9px;
+  height: 13px;
+  background-image: url('/skins/base/numbers.bmp');
+  background-repeat: no-repeat;
+  margin-right: 3px;
+}
+.wa-digit.tight { margin-right: 0; }
+.wa-digit-gap { width: 5px; }
+
+.wa-time.paused { opacity: 0.5; }
+
+/* ---------- SONG TITLE (rendered as text, classic neon green LCD) ---------- */
+.wa-songtitle {
+  position: absolute;
+  left: 111px; top: 27px;
+  width: 154px; height: 6px;
+  font-family: 'Arial', sans-serif;
+  font-size: 7px;
+  font-weight: normal;
+  color: #00ff33;
+  text-shadow: 0 0 1px #00ff33;
   letter-spacing: 0.5px;
-  font-family: 'MS Sans Serif', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 6px;
   text-transform: uppercase;
 }
 
-.winamp-close {
+/* Bitrate / kHz / channel info beneath title */
+.wa-kbps, .wa-khz {
   position: absolute;
-  right: 3px;
-  top: 2px;
-  width: 9px;
-  height: 8px;
-  background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 50%, #b0b0b0 100%);
-  border: 1px solid #000;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 6px;
-  font-weight: bold;
-  color: #000;
+  font-family: 'Arial', sans-serif;
+  font-size: 7px;
+  color: #00ff33;
+  text-shadow: 0 0 1px #00ff33;
+  font-weight: normal;
+  line-height: 6px;
 }
+.wa-kbps { left: 111px; top: 43px; width: 15px; }
+.wa-khz  { left: 156px; top: 43px; width: 15px; }
 
-.winamp-close:hover {
-  background: linear-gradient(to bottom, #ff6b6b 0%, #ff5252 50%, #f44336 100%);
-  color: #fff;
-}
-
-.winamp-close:active {
-  background: linear-gradient(to bottom, #d32f2f 0%, #f44336 50%, #ff6b6b 100%);
-}
-
-.winamp-display {
-  height: 26px;
-  background: #0a0a0a;
-  margin: 2px;
-  border: 1px inset #666;
-  display: flex;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  /* Classic Winamp display with inner shadow */
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.8), inset -1px -1px 2px rgba(255,255,255,0.1);
-}
-
-.winamp-spectrum {
+/* ---------- VISUALIZATION: spectrum + oscilloscope (left of title) ---------- */
+.wa-vis {
   position: absolute;
-  left: 24px;
-  top: 4px;
-  width: 76px;
-  height: 16px;
+  left: 24px; top: 43px;
+  width: 76px; height: 16px;
   background: #000;
   display: flex;
   align-items: end;
   gap: 1px;
-}
-
-.winamp-spectrum-bar {
-  width: 2px;
-  background: linear-gradient(to bottom, #00ff41 0%, #00aa00 100%);
-  transition: height 0.1s ease;
-}
-
-.winamp-oscilloscope {
-  position: absolute;
-  right: 107px;
-  top: 4px;
-  width: 76px;
-  height: 16px;
-  background: #000;
-  border: 1px solid #004000;
+  cursor: pointer;
   overflow: hidden;
 }
-
-.winamp-oscilloscope-line {
-  position: absolute;
-  top: 8px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: #00ff41;
-  box-shadow: 0 0 2px #00ff41;
-  transform-origin: left center;
+.wa-vis-bar {
+  width: 3px;
+  background: linear-gradient(to top,
+    #ff1c00 0%, #ff5800 14%, #ff8000 28%,
+    #ffaa00 42%, #ffd400 56%, #b6ff00 70%,
+    #00ff33 100%);
 }
-
-.winamp-time {
-  color: #00ff41;
-  font-family: 'Courier New', monospace;
-  font-size: 18px;
-  font-weight: bold;
-  margin-left: 8px;
-  text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
-  letter-spacing: 2px;
-}
-
-.winamp-song-info {
-  color: #00ff41;
-  font-size: 8px;
-  position: absolute;
-  right: 8px;
-  top: 2px;
-  font-family: 'MS Sans Serif', sans-serif;
-  text-shadow: 0 0 3px #00ff41;
-}
-
-.winamp-kbps {
-  color: #00ff41;
-  font-size: 8px;
-  position: absolute;
-  right: 8px;
-  bottom: 2px;
-  font-family: 'MS Sans Serif', sans-serif;
-  text-shadow: 0 0 3px #00ff41;
-}
-
-.winamp-controls {
-  display: flex;
-  justify-content: space-between;
-  padding: 2px 4px;
-  height: 30px;
-  background: linear-gradient(to bottom, #4a4a4a 0%, #3a3a3a 50%, #2a2a2a 100%);
-  border-top: 1px solid #555;
-}
-
-.winamp-button {
-  width: 23px;
-  height: 18px;
-  /* Classic Winamp button styling with metallic look */
-  background: linear-gradient(135deg, #6a6a6a 0%, #5a5a5a 25%, #4a4a4a 50%, #3a3a3a 75%, #2a2a2a 100%);
-  border: 1px outset #555;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: bold;
-  color: #ddd;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
-  transition: all 0.05s;
-  border-radius: 1px;
-  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.2);
-}
-
-.winamp-button:hover {
-  background: linear-gradient(135deg, #7a7a7a 0%, #6a6a6a 25%, #5a5a5a 50%, #4a4a4a 75%, #3a3a3a 100%);
-  box-shadow: inset 1px 1px 2px rgba(255,255,255,0.3);
-}
-
-.winamp-button:active {
-  border: 1px inset #555;
-  background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 25%, #4a4a4a 50%, #5a5a5a 75%, #6a6a6a 100%);
-  box-shadow: inset -1px -1px 2px rgba(255,255,255,0.1);
-}
-
-.winamp-position {
-  margin: 0 4px;
+.wa-vis-osc {
+  width: 76px;
   height: 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
-  padding: 2px;
+  display: block;
 }
 
-.winamp-slider {
-  width: 248px;
-  height: 10px;
-  background: linear-gradient(to bottom, #1a1a1a 0%, #2a2a2a 100%);
-  border: 1px inset #555;
-  position: relative;
-  cursor: pointer;
-  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.6);
-}
-
-.winamp-slider-track {
-  height: 8px;
-  width: 100%;
-  background: linear-gradient(to bottom, #0a0a0a 0%, #1a1a1a 100%);
-}
-
-.winamp-slider-thumb {
-  width: 6px;
-  height: 8px;
-  background: linear-gradient(to bottom, #6a6a6a 0%, #4a4a4a 50%, #2a2a2a 100%);
-  border: 1px outset #555;
+/* Mono / Stereo indicator (MONOSTER.BMP 58x24, two 29x12 cells x active/inactive rows) */
+.wa-monoster {
   position: absolute;
+  left: 212px; top: 41px;
+  width: 58px; height: 12px;
+  background-image: url('/skins/base/MONOSTER.BMP');
+  background-repeat: no-repeat;
+  /* show inactive row by default */
+  background-position: 0 -12px;
+}
+.wa-monoster.stereo { background-position: 0 0; }
+.wa-monoster.mono   { background-position: 0 0; }
+
+.wa-mono {
+  position: absolute;
+  left: 212px; top: 41px;
+  width: 29px; height: 12px;
+  background-image: url('/skins/base/MONOSTER.BMP');
+  background-repeat: no-repeat;
+  background-position: 0 -12px; /* off */
+}
+.wa-mono.on { background-position: 0 0; }
+
+.wa-stereo {
+  position: absolute;
+  left: 241px; top: 41px;
+  width: 29px; height: 12px;
+  background-image: url('/skins/base/MONOSTER.BMP');
+  background-repeat: no-repeat;
+  background-position: -29px -12px; /* off */
+}
+.wa-stereo.on { background-position: -29px 0; }
+
+/* Play/Pause/Stop indicator (PLAYPAUS.BMP 42x9, 9x9 cells) */
+.wa-status {
+  position: absolute;
+  left: 24px; top: 28px;
+  width: 9px; height: 9px;
+  background-image: url('/skins/base/PLAYPAUS.BMP');
+  background-repeat: no-repeat;
+  background-position: -18px 0; /* stop */
+}
+.wa-status.playing { background-position: -1px 0; }
+.wa-status.paused  { background-position: -10px 0; }
+.wa-status.stopped { background-position: -18px 0; }
+
+/* ---------- VOLUME SLIDER (volume.bmp 68x433) ---------- */
+.wa-volume {
+  position: absolute;
+  left: 107px; top: 57px;
+  width: 68px; height: 13px;
+  background-image: url('/skins/base/volume.bmp');
+  background-repeat: no-repeat;
+  background-position: 0 0; /* frame 0 = empty */
+  cursor: pointer;
+}
+.wa-volume-thumb {
+  position: absolute;
+  width: 14px; height: 11px;
+  top: 1px;
+  background-image: url('/skins/base/volume.bmp');
+  background-position: -15px -422px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.wa-volume:active .wa-volume-thumb { background-position: 0 -422px; }
+
+/* ---------- BALANCE SLIDER (BALANCE.BMP 68x433) ---------- */
+.wa-balance {
+  position: absolute;
+  left: 177px; top: 57px;
+  width: 38px; height: 13px;
+  background-image: url('/skins/base/BALANCE.BMP');
+  background-position: -9px 0;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.wa-balance-thumb {
+  position: absolute;
+  width: 14px; height: 11px;
+  top: 1px;
+  background-image: url('/skins/base/BALANCE.BMP');
+  background-position: -15px -422px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* ---------- EQ + PL toggle buttons (SHUFREP.BMP) ---------- */
+.wa-eq-btn, .wa-pl-btn {
+  position: absolute;
+  width: 23px; height: 12px;
+  background-image: url('/skins/base/SHUFREP.BMP');
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+.wa-eq-btn  { left: 219px; top: 58px; background-position: 0 -61px; } /* off */
+.wa-eq-btn.on { background-position: 0 -73px; }
+.wa-eq-btn:active { background-position: -46px -61px; }
+
+.wa-pl-btn  { left: 242px; top: 58px; background-position: -23px -61px; }
+.wa-pl-btn.on { background-position: -23px -73px; }
+.wa-pl-btn:active { background-position: -69px -61px; }
+
+/* ---------- POSITION SLIDER (POSBAR.BMP 307x10) ---------- */
+.wa-pos {
+  position: absolute;
+  left: 16px; top: 72px;
+  width: 248px; height: 10px;
+  background-image: url('/skins/base/POSBAR.BMP');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+.wa-pos-thumb {
+  position: absolute;
+  width: 29px; height: 10px;
   top: 0;
-  cursor: grab;
-  border-radius: 1px;
-  box-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+  background-image: url('/skins/base/POSBAR.BMP');
+  background-position: -248px 0;
+  background-repeat: no-repeat;
+  pointer-events: none;
 }
+.wa-pos:active .wa-pos-thumb { background-position: -278px 0; }
 
-.winamp-slider-thumb:active {
-  cursor: grabbing;
-  background: linear-gradient(to bottom, #5a5a5a 0%, #3a3a3a 50%, #1a1a1a 100%);
-}
-
-.winamp-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2px 4px;
-  height: 20px;
-  background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
-  border-top: 1px solid #555;
-}
-
-.winamp-volume {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.winamp-volume-slider {
-  width: 68px;
-  height: 10px;
-  background: linear-gradient(to bottom, #1a1a1a 0%, #2a2a2a 100%);
-  border: 1px inset #555;
-  position: relative;
-  cursor: pointer;
-  box-shadow: inset 2px 2px 3px rgba(0,0,0,0.6);
-}
-
-.winamp-eq-pl {
-  display: flex;
-  gap: 4px;
-}
-
-.winamp-eq, .winamp-pl {
-  width: 23px;
-  height: 12px;
-  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
-  border: 1px outset #555;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 7px;
-  color: #ddd;
-  font-weight: bold;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
-  border-radius: 1px;
-  box-shadow: inset 1px 1px 1px rgba(255,255,255,0.2);
-}
-
-.winamp-eq:hover, .winamp-pl:hover {
-  background: linear-gradient(to bottom, #6a6a6a 0%, #5a5a5a 50%, #4a4a4a 100%);
-}
-
-.winamp-eq:active, .winamp-pl:active {
-  border: 1px inset #555;
-  background: linear-gradient(to bottom, #3a3a3a 0%, #4a4a4a 50%, #5a5a5a 100%);
-}
-
-.winamp-mono-stereo {
-  font-size: 6px;
-  color: #999;
-  margin-right: 4px;
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
-}
-
-/* Playlist Editor Styling */
-.playlist-window {
+/* ---------- TRANSPORT BUTTONS (CBUTTONS.BMP 136x36) ---------- */
+.wa-cbtn {
   position: absolute;
-  top: 120px;
-  left: 50%;
-  transform: translateX(-50%);
+  background-image: url('/skins/base/CBUTTONS.BMP');
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+}
+.wa-prev   { left: 16px;  top: 88px; width: 23px; height: 18px; background-position: 0 0; }
+.wa-prev:active   { background-position: 0 -18px; }
+
+.wa-play   { left: 39px;  top: 88px; width: 23px; height: 18px; background-position: -23px 0; }
+.wa-play:active   { background-position: -23px -18px; }
+
+.wa-pause  { left: 62px;  top: 88px; width: 23px; height: 18px; background-position: -46px 0; }
+.wa-pause:active  { background-position: -46px -18px; }
+
+.wa-stop   { left: 85px;  top: 88px; width: 23px; height: 18px; background-position: -69px 0; }
+.wa-stop:active   { background-position: -69px -18px; }
+
+.wa-next   { left: 108px; top: 88px; width: 22px; height: 18px; background-position: -92px 0; }
+.wa-next:active   { background-position: -92px -18px; }
+
+.wa-eject  { left: 136px; top: 89px; width: 22px; height: 16px; background-position: -114px 0; }
+.wa-eject:active  { background-position: -114px -16px; }
+
+/* Shuffle / Repeat (SHUFREP.BMP) */
+.wa-shuffle {
+  position: absolute;
+  left: 164px; top: 89px;
+  width: 47px; height: 15px;
+  background-image: url('/skins/base/SHUFREP.BMP');
+  background-position: -28px 0;  /* off */
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border: 0;
+}
+.wa-shuffle.on { background-position: -28px -30px; }
+.wa-shuffle:active { background-position: -28px -15px; }
+.wa-shuffle.on:active { background-position: -28px -45px; }
+
+.wa-repeat {
+  position: absolute;
+  left: 210px; top: 89px;
+  width: 28px; height: 15px;
+  background-image: url('/skins/base/SHUFREP.BMP');
+  background-position: 0 0;     /* off */
+  background-repeat: no-repeat;
+  cursor: pointer;
+  border: 0;
+}
+.wa-repeat.on { background-position: 0 -30px; }
+.wa-repeat:active { background-position: 0 -15px; }
+.wa-repeat.on:active { background-position: 0 -45px; }
+
+/* "Working indicator" (anti-clipping) */
+.wa-led {
+  position: absolute;
+  left: 269px; top: 90px;
+  width: 3px; height: 9px;
+  background: #5a5a5a;
+}
+
+/* ---------- PLAYLIST WINDOW (Pledit.bmp sprite-based) ---------- */
+.pl-window {
+  position: relative;
   width: 275px;
   height: 232px;
-  background: linear-gradient(135deg, #404040 0%, #303030 25%, #202020 50%, #181818 75%, #101010 100%);
+  zoom: 2;
+  background: #000;
   border: 1px solid #000;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-  z-index: 1000;
+  font-family: Arial, sans-serif;
+  user-select: none;
 }
-
-.playlist-header {
-  height: 14px;
-  background: linear-gradient(to bottom, #0066cc 0%, #004499 50%, #002266 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4px;
-  border-bottom: 1px solid #000;
+.pl-titlebar {
+  width: 275px; height: 20px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  position: relative;
+  cursor: move;
 }
-
-.playlist-title {
-  color: #ffffff;
-  font-size: 8px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0,0,0,1);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+.pl-titlebar.inactive {
+  background-position: 0 -21px;
 }
-
-.playlist-btn {
-  background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 50%, #b0b0b0 100%);
-  border: 1px solid #000;
-  width: 9px;
-  height: 8px;
-  font-size: 6px;
-  color: #000;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.playlist-actions {
-  height: 20px;
-  background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
-  border-bottom: 1px solid #000;
-}
-
-.playlist-action-btn {
-  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
-  border: 1px outset #555;
-  color: #ddd;
-  font-size: 8px;
-  height: 16px;
-  padding: 0 6px;
-  cursor: pointer;
-}
-
-.playlist-info {
-  color: #999;
-  font-size: 8px;
-  margin-left: auto;
-}
-
-.playlist-content {
-  height: 178px;
+.pl-content {
+  position: absolute;
+  left: 0; top: 20px; right: 0; bottom: 38px;
   background: #000;
   overflow-y: auto;
-  border: 1px inset #333;
-  margin: 2px;
+  border-left: 1px solid #000;
+  border-right: 1px solid #000;
+  padding: 0;
+}
+.pl-item {
+  font-size: 7px;
+  color: #00ff33;
+  padding: 1px 4px;
+  height: 9px;
+  line-height: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+}
+.pl-item:hover { background: rgba(0,255,51,0.15); }
+.pl-item.selected { background: #0000c8; color: #fff; }
+.pl-empty {
+  color: #888;
+  text-align: center;
+  font-size: 8px;
+  padding-top: 50px;
 }
 
-.playlist-items {
-  height: 100%;
-}
-
-.playlist-item {
+.pl-footer {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 38px;
   display: flex;
   align-items: center;
-  padding: 1px 4px;
-  height: 16px;
+  background: #000;
+}
+.pl-footer-bg {
+  position: absolute; inset: 0;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-position: 0 -148px;
+  background-repeat: no-repeat;
+  background-size: 275px 38px;
+}
+.pl-actions {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  padding: 4px 8px;
+  z-index: 1;
+}
+.pl-actions button {
+  background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
+  border: 1px outset #555;
+  color: #fff;
+  font-size: 7px;
+  padding: 2px 5px;
   cursor: pointer;
-  color: #00ff00;
-  font-size: 8px;
-  font-family: 'MS Sans Serif', sans-serif;
+  font-family: Arial, sans-serif;
 }
+.pl-actions button:active { border-style: inset; }
 
-.playlist-item:hover {
-  background: rgba(0, 255, 0, 0.1);
-}
-
-.playlist-item.selected {
-  background: rgba(0, 255, 0, 0.3);
-  color: #ffffff;
-}
-
-.playlist-number {
-  width: 20px;
-  text-align: right;
-  margin-right: 6px;
-  color: #888;
-}
-
-.playlist-filename {
-  flex: 1;
-}
-
-.playlist-empty {
-  color: #666;
-  text-align: center;
-  padding: 40px;
-  font-size: 8px;
-}
-
-/* Equalizer Styling */
-.equalizer-window {
-  position: absolute;
-  top: 120px;
-  right: 50%;
-  transform: translateX(50%);
+/* ---------- EQUALIZER WINDOW (Eqmain.bmp sprite-based) ---------- */
+.eq-window {
+  position: relative;
   width: 275px;
   height: 116px;
-  background: linear-gradient(135deg, #404040 0%, #303030 25%, #202020 50%, #181818 75%, #101010 100%);
-  border: 1px solid #000;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-  z-index: 1000;
+  zoom: 2;
+  background-image: url('/skins/base/Eqmain.bmp');
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  user-select: none;
+  font-family: Arial, sans-serif;
 }
-
-.eq-header {
-  height: 14px;
-  background: linear-gradient(to bottom, #0066cc 0%, #004499 50%, #002266 100%);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 4px;
-  border-bottom: 1px solid #000;
+.eq-titlebar {
+  position: absolute;
+  left: 0; top: 0;
+  width: 275px; height: 14px;
+  background-image: url('/skins/base/Eqmain.bmp');
+  background-position: 0 -134px;
+  background-repeat: no-repeat;
+  cursor: move;
 }
+.eq-titlebar.inactive { background-position: 0 -149px; }
 
-.eq-title {
-  color: #ffffff;
-  font-size: 8px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0,0,0,1);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-
-.eq-btn {
-  background: linear-gradient(to bottom, #f0f0f0 0%, #d0d0d0 50%, #b0b0b0 100%);
-  border: 1px solid #000;
-  width: 9px;
-  height: 8px;
-  font-size: 6px;
-  color: #000;
+.eq-on, .eq-auto {
+  position: absolute;
+  width: 26px; height: 12px;
+  background-image: url('/skins/base/Eqmain.bmp');
+  background-repeat: no-repeat;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
+.eq-on    { left: 14px; top: 18px; background-position: 0 -119px; }   /* on=off */
+.eq-on.active { background-position: -69px -119px; }
+.eq-auto  { left: 39px; top: 18px; background-position: -33px -119px; }
+.eq-auto.active { background-position: -102px -119px; }
 
-.eq-main-controls {
-  height: 20px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 4px;
-  background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
-}
-
-.eq-power-btn, .eq-auto-btn {
-  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
+.eq-presets {
+  position: absolute;
+  left: 217px; top: 18px;
+  width: 44px; height: 12px;
+  background: linear-gradient(to bottom,#000,#1a1a1a);
   border: 1px outset #555;
-  color: #ddd;
-  font-size: 8px;
-  height: 16px;
-  padding: 0 6px;
+  color: #00ff33;
+  font-size: 7px;
+  font-family: Arial, sans-serif;
   cursor: pointer;
-}
-
-.eq-power-btn.enabled, .eq-auto-btn.enabled {
-  background: linear-gradient(to bottom, #ffaa00 0%, #ff8800 50%, #ff6600 100%);
-  color: #000;
-}
-
-.eq-preset-select {
-  background: #2a2a2a;
-  border: 1px inset #555;
-  color: #ddd;
-  font-size: 8px;
-  height: 16px;
-  flex: 1;
-}
-
-.eq-reset-btn {
-  background: linear-gradient(to bottom, #5a5a5a 0%, #4a4a4a 50%, #3a3a3a 100%);
-  border: 1px outset #555;
-  color: #ddd;
-  font-size: 8px;
-  height: 16px;
-  padding: 0 6px;
-  cursor: pointer;
+  padding: 1px 4px;
 }
 
 .eq-bands {
+  position: absolute;
+  left: 13px; top: 38px;
+  width: 250px; height: 64px;
   display: flex;
-  justify-content: space-between;
-  padding: 4px 8px;
-  height: 70px;
-  background: #1a1a1a;
+  gap: 7px;
 }
-
 .eq-band {
+  position: relative;
+  width: 11px;
+  height: 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 20px;
+  cursor: pointer;
 }
-
-.eq-band-slider {
-  writing-mode: bt-lr;
+.eq-band input[type="range"] {
   -webkit-appearance: slider-vertical;
-  width: 4px;
-  height: 40px;
-  background: #333;
+  writing-mode: bt-lr;
+  width: 11px;
+  height: 64px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: ns-resize;
+  opacity: 0.001; /* invisible — visual is the bitmap */
+}
+.eq-preamp {
+  position: absolute;
+  left: 21px; top: 38px;
+  width: 14px;
 }
 
-.eq-band-value {
-  color: #00ff00;
+.eq-close-btn {
+  position: absolute;
+  top: 3px; right: 6px;
+  width: 9px; height: 9px;
+  background: linear-gradient(to bottom,#f0f0f0,#b0b0b0);
+  border: 1px solid #000;
+  cursor: pointer;
   font-size: 6px;
-  margin: 2px 0;
-}
-
-.eq-band-label {
-  color: #999;
-  font-size: 6px;
-}
-
-.eq-status {
-  height: 12px;
-  background: #000;
-  color: #00ff00;
-  font-size: 6px;
+  color: #000;
   display: flex;
   align-items: center;
-  padding: 0 4px;
+  justify-content: center;
+  font-family: Arial, sans-serif;
 }
+
+/* Hidden file inputs */
+.wa-hidden { display: none !important; }
