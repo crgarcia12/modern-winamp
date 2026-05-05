@@ -1,7 +1,7 @@
 {
   "name": "winamp-web",
-  "version": "1.0.2",
-  "description": "Winamp Web Application - Classic Interface with Authentic Skin",
+  "version": "1.0.3",
+  "description": "Winamp Web Application - Complete with Playlist & Equalizer",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
