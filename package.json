@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "serve -s dist -p 3000",
-    "start": "serve -s dist -p $PORT"
+    "serve": "serve dist -p 3000",
+    "start": "serve dist -p $PORT"
   },
   "dependencies": {
     "react": "^18.2.0",
