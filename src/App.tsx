@@ -271,7 +271,10 @@ const App: React.FC = () => {
         <PlaylistEditor
           isVisible={showPlaylist}
           onClose={() => setShowPlaylist(false)}
-          onLoadTrack={(entry: any) => entry?.file && loadFile(entry.file)}
+          onLoadTrack={(entry: any) => {
+            if (entry?.file) loadFile(entry.file);
+            else if (entry?.url) loadUrl(entry.url, entry.filename);
+          }}
         />
       )}
 

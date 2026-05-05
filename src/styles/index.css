@@ -387,21 +387,25 @@ html, body {
 
 /* ---------- PLAYLIST WINDOW (Pledit.bmp sprite-based) ----------
    Pledit.bmp is the classic Winamp sprite atlas (280x186). We compose
-   the playlist window from its parts:
-     - Title bar (top, 20px tall, full-width sprite at y=0)
-     - Left/right vertical edge strips (25px wide, tile vertically)
-     - Bottom strip (38px tall, includes corners + middle fill)
-   This gives the window proper Winamp-style metallic borders. */
+   the playlist window from its parts to match the original C++ draw_pe.cpp:
+     - Title bar (y=0..20 active, y=21..41 inactive)
+     - Left/right vertical edge strips (tile vertically)
+     - Bottom strip (y=72..90 region) with corners + tile-fill
+     - Five button groups across the bottom (ADD/REM/SEL/MISC/LIST) */
 .pl-window {
   position: relative;
   width: 275px;
   height: 232px;
   zoom: 2;
   background: #000;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   user-select: none;
-  /* Outer frame keeps the dark metallic edge even when sprite is off */
   box-shadow: 0 0 0 1px #000;
+}
+
+.pl-window.pl-dragover .pl-content {
+  outline: 1px dashed #00ff33;
+  background: #002b00;
 }
 
 .pl-titlebar {
@@ -411,8 +415,43 @@ html, body {
   background-repeat: no-repeat;
   position: relative;
   cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .pl-titlebar.inactive { background-position: 0 -21px; }
+
+/* Title text rendered as crisp green pixel-style label, centered */
+.pl-title-text {
+  font-family: 'Arial', sans-serif;
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: #00ff33;
+  text-shadow: 0 0 1px #00ff33;
+  text-transform: uppercase;
+  pointer-events: none;
+  margin-top: 4px;
+}
+
+.pl-tb-close {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 9px; height: 9px;
+  background: linear-gradient(to bottom, #f0f0f0, #b0b0b0);
+  border: 1px solid #000;
+  cursor: pointer;
+  padding: 0;
+}
+.pl-tb-close:active { background: linear-gradient(to top, #f0f0f0, #b0b0b0); }
+.pl-tb-close::after {
+  content: '×';
+  position: absolute;
+  top: -2px; left: 1px;
+  color: #000;
+  font-size: 9px;
+  font-family: Arial, sans-serif;
+  line-height: 9px;
+}
 
 /* Left vertical edge — uses the body-fill column from Pledit.bmp.
    The classic skin places this region around (0, 42, 25, 29) and tiles. */
@@ -466,65 +505,153 @@ html, body {
   background-repeat: no-repeat;
 }
 
+/* Item list container — classic Winamp green-on-black with thin metallic frame */
 .pl-content {
   position: absolute;
   left: 12px; right: 12px;
   top: 20px; bottom: 38px;
   background: #000;
   overflow-y: auto;
-  border: 1px solid #1a1a1a;
-  padding: 0;
+  border: 1px solid #2a2a2a;
+  border-top-color: #1a1a1a;
+  border-left-color: #1a1a1a;
+  padding: 1px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #4a4a4a #000;
 }
+.pl-content::-webkit-scrollbar { width: 6px; }
+.pl-content::-webkit-scrollbar-track { background: #000; }
+.pl-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(to right, #6a6a6a, #2a2a2a);
+  border: 1px solid #000;
+}
+
 .pl-item {
+  display: flex;
+  align-items: center;
   font-size: 7px;
   color: #00ff33;
-  padding: 1px 4px;
+  text-shadow: 0 0 1px rgba(0,255,51,0.4);
+  padding: 0 3px;
   height: 9px;
   line-height: 9px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 0.2px;
 }
-.pl-item:hover { background: rgba(0,255,51,0.15); }
-.pl-item.selected { background: #0000c8; color: #fff; }
+.pl-item:hover { background: rgba(0,255,51,0.08); }
+.pl-item.selected {
+  background: #0000c8;
+  color: #fff;
+  text-shadow: none;
+}
+.pl-item-num {
+  flex: 0 0 14px;
+  text-align: right;
+  margin-right: 4px;
+  opacity: 0.85;
+}
+.pl-item-title {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pl-item-dur {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
 .pl-empty {
-  color: #888;
+  color: #00ff33;
   text-align: center;
   font-size: 7px;
   padding-top: 50px;
-  font-family: Arial, sans-serif;
-  letter-spacing: 0.3px;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 0.5px;
+  opacity: 0.7;
+  pointer-events: none;
 }
 
-.pl-actions {
+/* ---------- Bottom button groups (ADD / REM / SEL / MISC / LIST) ----------
+   Each group is a column of 3 small raised metallic buttons with a tiny
+   green label above. Positioned to mirror the classic Winamp layout
+   along the bottom of the playlist window. */
+.pl-btn-grp {
   position: absolute;
-  left: 6px; bottom: 4px;
-  z-index: 2;
+  bottom: 1px;
+  width: 25px;
+  height: 36px;
+  z-index: 3;
   display: flex;
-  gap: 3px;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
+  pointer-events: auto;
 }
-.pl-actions button {
-  background: linear-gradient(to bottom, #4a4a4a, #2a2a2a);
-  border: 1px outset #555;
-  color: #fff;
+.pl-grp-add  { left: 11px; }
+.pl-grp-rem  { left: 40px; }
+.pl-grp-sel  { left: 69px; }
+.pl-grp-misc { left: 100px; }
+.pl-grp-list { right: 11px; }
+
+.pl-grp-label {
   font-size: 6px;
-  padding: 1px 4px;
-  cursor: pointer;
-  font-family: Arial, sans-serif;
-  height: 12px;
-  line-height: 8px;
+  color: #00ff33;
+  text-shadow: 0 0 1px #00ff33;
+  text-align: center;
+  letter-spacing: 0.5px;
+  height: 6px;
+  line-height: 6px;
+  margin-bottom: 1px;
+  font-family: 'Arial', sans-serif;
+  text-transform: uppercase;
+  pointer-events: none;
 }
-.pl-actions button:active { border-style: inset; }
+.pl-btn {
+  width: 100%;
+  height: 8px;
+  margin-bottom: 1px;
+  font-size: 5px;
+  line-height: 5px;
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  color: #000;
+  background: linear-gradient(to bottom, #c0c0c0 0%, #909090 50%, #707070 100%);
+  border: 1px solid;
+  border-color: #d0d0d0 #303030 #303030 #d0d0d0;
+  border-radius: 0;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+}
+.pl-btn:hover:not(:disabled) {
+  background: linear-gradient(to bottom, #d0d0d0 0%, #a0a0a0 50%, #808080 100%);
+}
+.pl-btn:active:not(:disabled) {
+  border-color: #303030 #d0d0d0 #d0d0d0 #303030;
+  background: linear-gradient(to top, #c0c0c0 0%, #707070 100%);
+}
+.pl-btn:disabled {
+  color: #555;
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* Track count + total time, classic green LCD readout above bottom buttons */
 .pl-counter {
   position: absolute;
-  right: 8px; bottom: 4px;
+  right: 14px;
+  bottom: 30px;
   color: #00ff33;
+  text-shadow: 0 0 1px #00ff33;
   font-size: 7px;
-  z-index: 2;
-  font-family: Arial, sans-serif;
+  z-index: 3;
+  font-family: 'Arial', sans-serif;
+  letter-spacing: 0.3px;
+  pointer-events: none;
 }
 
 /* ---------- EQUALIZER WINDOW (Eqmain.bmp sprite-based) ---------- */
