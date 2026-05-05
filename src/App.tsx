@@ -1,3 +1,4 @@
+// Rebuild trigger - version 1.0.1
 import React, { useState, useEffect, useRef } from 'react';
 
 const App: React.FC = () => {
