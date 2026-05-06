@@ -32,6 +32,10 @@ const App: React.FC = () => {
     stop,
     seek,
     setVolume,
+    setEqEnabled,
+    setEqBand,
+    setEqPreamp,
+    setEqValues,
   } = useAudio();
 
   const { loadSkin, applySkin, resetToDefaultSkin } = useSkinLoader();
@@ -264,7 +268,10 @@ const App: React.FC = () => {
         <Equalizer
           isVisible={showEqualizer}
           onClose={() => setShowEqualizer(false)}
-          audioContext={null}
+          onEnabledChange={setEqEnabled}
+          onBandChange={setEqBand}
+          onPreampChange={setEqPreamp}
+          onValuesChange={setEqValues}
         />
       )}
       {showPlaylist && (

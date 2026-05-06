@@ -1,60 +1,102 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface EqualizerProps {
   isVisible: boolean;
   onClose: () => void;
-  audioContext: AudioContext | null;
+  onEnabledChange: (enabled: boolean) => void;
+  onBandChange: (index: number, db: number) => void;
+  onPreampChange: (db: number) => void;
+  onValuesChange: (values: number[]) => void;
 }
 
 const EQ_BANDS = ['60', '170', '310', '600', '1K', '3K', '6K', '12K', '14K', '16K'];
 
 const EQ_PRESETS: Record<string, number[]> = {
-  Default:     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  Rock:        [8, 4, -5, -8, -3, 4, 8, 11, 11, 11],
-  Pop:         [-1, 4, 7, 8, 5, 0, -2, -2, -1, -1],
-  Jazz:        [4, 2, -2, 2, -1, -1, 0, 2, 4, 6],
-  Classical:   [5, 3, -2, 4, -1, -1, 0, 3, 7, 9],
-  Dance:       [9, 7, 2, 0, 0, -5, -7, -7, 0, 0],
-  'Full Bass': [7, 9, 9, 5, 1, -4, -8, -10, -11, -11],
+  Default:       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  Rock:          [8, 4, -5, -8, -3, 4, 8, 11, 11, 11],
+  Pop:           [-1, 4, 7, 8, 5, 0, -2, -2, -1, -1],
+  Jazz:          [4, 2, -2, 2, -1, -1, 0, 2, 4, 6],
+  Classical:     [5, 3, -2, 4, -1, -1, 0, 3, 7, 9],
+  Dance:         [9, 7, 2, 0, 0, -5, -7, -7, 0, 0],
+  'Full Bass':   [7, 9, 9, 5, 1, -4, -8, -10, -11, -11],
   'Full Treble': [-9, -9, -9, -4, 2, 11, 16, 16, 16, 16],
 };
 
-export const Equalizer: React.FC<EqualizerProps> = ({ isVisible, onClose }) => {
+const TRACK_HEIGHT = 64;
+const THUMB_HEIGHT = 11;
+// Range is ±20 dB to give the user audible headroom.
+const MAX_DB = 20;
+
+const dbToY = (db: number) =>
+  Math.round(((MAX_DB - db) / (MAX_DB * 2)) * (TRACK_HEIGHT - THUMB_HEIGHT));
+
+export const Equalizer: React.FC<EqualizerProps> = ({
+  isVisible,
+  onClose,
+  onEnabledChange,
+  onBandChange,
+  onPreampChange,
+  onValuesChange,
+}) => {
   const [enabled, setEnabled] = useState(false);
   const [autoMode, setAutoMode] = useState(false);
   const [preamp, setPreamp] = useState(0);
   const [values, setValues] = useState<number[]>(Array(10).fill(0));
   const [preset, setPreset] = useState('Default');
 
+  // Push initial state on mount so the audio chain matches the UI.
+  useEffect(() => {
+    onEnabledChange(enabled);
+    onPreampChange(preamp);
+    onValuesChange(values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!isVisible) return null;
+
+  const toggleEnabled = () => {
+    const next = !enabled;
+    setEnabled(next);
+    onEnabledChange(next);
+  };
 
   const applyPreset = (name: string) => {
     setPreset(name);
-    setValues(EQ_PRESETS[name] ?? Array(10).fill(0));
+    const next = EQ_PRESETS[name] ?? Array(10).fill(0);
+    setValues(next);
+    onValuesChange(next);
   };
 
   const setBand = (i: number, v: number) => {
     const next = values.slice();
     next[i] = v;
     setValues(next);
+    setPreset('Custom');
+    onBandChange(i, v);
+  };
+
+  const updatePreamp = (v: number) => {
+    setPreamp(v);
+    onPreampChange(v);
   };
 
   return (
     <div className="eq-window">
       <div className="eq-titlebar">
+        <div className="eq-title-text">EQUALIZER</div>
         <button className="eq-close-btn" onClick={onClose} title="Close">×</button>
       </div>
 
       <button
-        className={`eq-on ${enabled ? 'active' : ''}`}
-        onClick={() => setEnabled((v) => !v)}
-        title="On/Off"
-      />
+        className={`eq-toggle eq-on ${enabled ? 'active' : ''}`}
+        onClick={toggleEnabled}
+        title="EQ On/Off"
+      >ON</button>
       <button
-        className={`eq-auto ${autoMode ? 'active' : ''}`}
+        className={`eq-toggle eq-auto ${autoMode ? 'active' : ''}`}
         onClick={() => setAutoMode((v) => !v)}
         title="Auto"
-      />
+      >AUTO</button>
 
       <select
         className="eq-presets"
@@ -64,69 +106,52 @@ export const Equalizer: React.FC<EqualizerProps> = ({ isVisible, onClose }) => {
         {Object.keys(EQ_PRESETS).map((p) => (
           <option key={p} value={p}>{p}</option>
         ))}
+        {preset === 'Custom' && <option value="Custom">Custom</option>}
       </select>
 
-      {/* Preamp slider rendered to the LEFT of the bands (band 0 sentinel) */}
       <div className="eq-bands">
-        <div className="eq-band" title={`Preamp: ${preamp}dB`}>
-          <input
-            type="range"
-            min={-12}
-            max={12}
-            value={preamp}
-            onChange={(e) => setPreamp(parseInt(e.target.value, 10))}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              top: 0, left: 4,
-              width: 3,
-              height: 64,
-              background: '#222',
-              border: '1px inset #555',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              width: 11, height: 11,
-              background: 'linear-gradient(to bottom,#aaa,#444)',
-              border: '1px outset #777',
-              top: `${Math.round(((12 - preamp) / 24) * (64 - 11))}px`,
-              pointerEvents: 'none',
-            }}
-          />
-        </div>
-        {EQ_BANDS.map((label, i) => (
-          <div className="eq-band" key={label} title={`${label}Hz: ${values[i]}dB`}>
+        {/* Preamp slider */}
+        <div className="eq-band eq-preamp" title={`Preamp: ${preamp}dB`}>
+          <div className="eq-band-label">PRE</div>
+          <div className="eq-slot">
+            <div className="eq-track" />
+            <div className="eq-zero-line" />
             <input
               type="range"
-              min={-12}
-              max={12}
-              value={values[i]}
-              onChange={(e) => setBand(i, parseInt(e.target.value, 10))}
+              min={-MAX_DB}
+              max={MAX_DB}
+              step={1}
+              value={preamp}
+              onChange={(e) => updatePreamp(parseInt(e.target.value, 10))}
             />
             <div
-              style={{
-                position: 'absolute',
-                top: 0, left: 4,
-                width: 3, height: 64,
-                background: '#222',
-                border: '1px inset #555',
-              }}
+              className="eq-thumb"
+              style={{ top: `${dbToY(preamp)}px` }}
             />
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                width: 11, height: 11,
-                background: 'linear-gradient(to bottom,#aaa,#444)',
-                border: '1px outset #777',
-                top: `${Math.round(((12 - values[i]) / 24) * (64 - 11))}px`,
-                pointerEvents: 'none',
-              }}
-            />
+          </div>
+          <div className="eq-band-value">{preamp > 0 ? `+${preamp}` : preamp}</div>
+        </div>
+
+        {EQ_BANDS.map((label, i) => (
+          <div className="eq-band" key={label} title={`${label}Hz: ${values[i]}dB`}>
+            <div className="eq-band-label">{label}</div>
+            <div className="eq-slot">
+              <div className="eq-track" />
+              <div className="eq-zero-line" />
+              <input
+                type="range"
+                min={-MAX_DB}
+                max={MAX_DB}
+                step={1}
+                value={values[i]}
+                onChange={(e) => setBand(i, parseInt(e.target.value, 10))}
+              />
+              <div
+                className="eq-thumb"
+                style={{ top: `${dbToY(values[i])}px` }}
+              />
+            </div>
+            <div className="eq-band-value">{values[i] > 0 ? `+${values[i]}` : values[i]}</div>
           </div>
         ))}
       </div>

@@ -13,12 +13,24 @@ export interface AudioState {
   timeDomainData: Uint8Array;
 }
 
+// 10-band ISO-style frequencies, matching the labels shown in the EQ window.
+export const EQ_FREQUENCIES = [60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000];
+
 export const useAudio = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyzerRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const animationRef = useRef<number>();
+
+  // EQ chain: preamp gain → 10 peaking biquads → analyser → destination.
+  // We keep refs for the nodes plus shadow values so we can re-apply when
+  // the chain is finally constructed (audio context is created lazily on play).
+  const preampRef = useRef<GainNode | null>(null);
+  const eqFiltersRef = useRef<BiquadFilterNode[]>([]);
+  const eqEnabledRef = useRef(false);
+  const eqValuesRef = useRef<number[]>(Array(10).fill(0));
+  const eqPreampRef = useRef(0);
 
   const [audioState, setAudioState] = useState<AudioState>({
     isPlaying: false,
@@ -37,15 +49,39 @@ export const useAudio = () => {
   const initializeAudioContext = useCallback(() => {
     if (!audioContextRef.current && audioRef.current) {
       try {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        analyzerRef.current = audioContextRef.current.createAnalyser();
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = ctx;
+        analyzerRef.current = ctx.createAnalyser();
         analyzerRef.current.fftSize = 512;
         analyzerRef.current.smoothingTimeConstant = 0.8;
-        
+
         if (!sourceRef.current) {
-          sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-          sourceRef.current.connect(analyzerRef.current);
-          analyzerRef.current.connect(audioContextRef.current.destination);
+          sourceRef.current = ctx.createMediaElementSource(audioRef.current);
+
+          // Build EQ chain
+          const preamp = ctx.createGain();
+          preamp.gain.value = dbToGain(eqPreampRef.current, eqEnabledRef.current);
+          preampRef.current = preamp;
+
+          const filters: BiquadFilterNode[] = EQ_FREQUENCIES.map((freq, i) => {
+            const f = ctx.createBiquadFilter();
+            f.type = 'peaking';
+            f.frequency.value = freq;
+            f.Q.value = 1.0;
+            f.gain.value = eqEnabledRef.current ? eqValuesRef.current[i] : 0;
+            return f;
+          });
+          eqFiltersRef.current = filters;
+
+          // source -> preamp -> f0 -> f1 -> ... -> analyser -> destination
+          sourceRef.current.connect(preamp);
+          let prev: AudioNode = preamp;
+          for (const f of filters) {
+            prev.connect(f);
+            prev = f;
+          }
+          prev.connect(analyzerRef.current);
+          analyzerRef.current.connect(ctx.destination);
         }
       } catch (error) {
         console.error('Failed to initialize audio context:', error);
@@ -220,6 +256,38 @@ export const useAudio = () => {
     }
   }, []);
 
+  // ----- EQ controls -----
+  const setEqEnabled = useCallback((enabled: boolean) => {
+    eqEnabledRef.current = enabled;
+    const filters = eqFiltersRef.current;
+    filters.forEach((f, i) => {
+      f.gain.value = enabled ? eqValuesRef.current[i] : 0;
+    });
+    if (preampRef.current) {
+      preampRef.current.gain.value = dbToGain(eqPreampRef.current, enabled);
+    }
+  }, []);
+
+  const setEqBand = useCallback((index: number, db: number) => {
+    eqValuesRef.current[index] = db;
+    const f = eqFiltersRef.current[index];
+    if (f && eqEnabledRef.current) f.gain.value = db;
+  }, []);
+
+  const setEqValues = useCallback((values: number[]) => {
+    eqValuesRef.current = values.slice();
+    eqFiltersRef.current.forEach((f, i) => {
+      f.gain.value = eqEnabledRef.current ? (values[i] ?? 0) : 0;
+    });
+  }, []);
+
+  const setEqPreamp = useCallback((db: number) => {
+    eqPreampRef.current = db;
+    if (preampRef.current) {
+      preampRef.current.gain.value = dbToGain(db, eqEnabledRef.current);
+    }
+  }, []);
+
   return {
     audioRef,
     audioState,
@@ -229,6 +297,18 @@ export const useAudio = () => {
     pause,
     stop,
     seek,
-    setVolume
+    setVolume,
+    // EQ controls
+    setEqEnabled,
+    setEqBand,
+    setEqPreamp,
+    setEqValues,
   };
 };
+
+// Convert a dB value (used by the EQ UI for preamp) to a linear gain.
+// When `enabled` is false the preamp gain is forced to 1.0 (bypass).
+function dbToGain(db: number, enabled: boolean): number {
+  if (!enabled) return 1.0;
+  return Math.pow(10, db / 20);
+}
