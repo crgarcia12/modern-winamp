@@ -256,19 +256,26 @@ html, body {
   width: 14px; height: 11px;
   top: 1px;
   background-image: url('/skins/base/volume.bmp');
-  background-position: -15px -422px;
+  /* Rest thumb at (0, 422); pressed at (15, 422). */
+  background-position: 0 -422px;
   background-repeat: no-repeat;
   pointer-events: none;
 }
-.wa-volume:active .wa-volume-thumb { background-position: 0 -422px; }
+.wa-volume:active .wa-volume-thumb { background-position: -15px -422px; }
 
-/* ---------- BALANCE SLIDER (BALANCE.BMP 68x433) ---------- */
+/* ---------- BALANCE SLIDER (BALANCE.BMP 68x433) ----------
+   Atlas has 28 frames stacked vertically (15px each):
+     frame 0  = full-left,  frame 13/14 = centered (no offset),  frame 27 = full-right.
+   Default to the centered frame so the on-bitmap needle aligns with the
+   centered thumb position. Frame 14 → background-position-y = -210px.
+   The slider shows pixels x=9..47 of the 68px-wide sprite to crop to 38px.
+*/
 .wa-balance {
   position: absolute;
   left: 177px; top: 57px;
   width: 38px; height: 13px;
   background-image: url('/skins/base/BALANCE.BMP');
-  background-position: -9px 0;
+  background-position: -9px -210px;
   background-repeat: no-repeat;
   cursor: pointer;
 }
@@ -277,10 +284,12 @@ html, body {
   width: 14px; height: 11px;
   top: 1px;
   background-image: url('/skins/base/BALANCE.BMP');
-  background-position: -15px -422px;
+  /* Resting thumb sprite is at (0, 422). Pressed is at (15, 422). */
+  background-position: 0 -422px;
   background-repeat: no-repeat;
   pointer-events: none;
 }
+.wa-balance:active .wa-balance-thumb { background-position: -15px -422px; }
 
 /* ---------- EQ + PL toggle buttons (SHUFREP.BMP) ---------- */
 .wa-eq-btn, .wa-pl-btn {
