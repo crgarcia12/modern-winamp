@@ -189,13 +189,15 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
         onChange={handleFileInputChange}
       />
 
-      {/* Title bar (sprite at y=0 active, y=21 inactive) */}
+      {/* Title bar (composed from 3 sprite pieces of Pledit.bmp) */}
       <div className="pl-titlebar">
-        <div className="pl-title-text">WINAMP PLAYLIST EDITOR</div>
+        <div className="pl-tb-left" />
+        <div className="pl-tb-mid" />
+        <div className="pl-tb-right" />
         <button className="pl-tb-close" onClick={onClose} title="Close" />
       </div>
 
-      {/* Vertical edge strips compose the side borders */}
+      {/* Vertical edge strips composed from Pledit.bmp */}
       <div className="pl-edge-left" />
       <div className="pl-edge-right" />
 
@@ -225,7 +227,7 @@ export const PlaylistEditor: React.FC<PlaylistEditorProps> = ({
         })}
       </div>
 
-      {/* Bottom strip composed of left corner + tiled middle + right corner */}
+      {/* Bottom strip composed from Pledit.bmp pieces */}
       <div className="pl-bottom">
         <div className="pl-bottom-left" />
         <div className="pl-bottom-mid" />

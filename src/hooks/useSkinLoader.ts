@@ -95,10 +95,10 @@ function injectSkinCss(skin: WinampSkin) {
   if (url('MONOSTER.BMP')) rules.push(`.wa-mono,.wa-stereo,.wa-monoster{background-image:url('${url('MONOSTER.BMP')}')!important}`);
   if (url('PLAYPAUS.BMP')) rules.push(`.wa-status{background-image:url('${url('PLAYPAUS.BMP')}')!important}`);
   if (url('Eqmain.bmp')) {
-    rules.push(`.eq-window,.eq-titlebar,.eq-on,.eq-auto{background-image:url('${url('Eqmain.bmp')}')!important}`);
+    rules.push(`.eq-window,.eq-on,.eq-auto,.eq-thumb{background-image:url('${url('Eqmain.bmp')}')!important}`);
   }
   if (url('Pledit.bmp')) {
-    rules.push(`.pl-titlebar,.pl-footer-bg{background-image:url('${url('Pledit.bmp')}')!important}`);
+    rules.push(`.pl-tb-left,.pl-tb-mid,.pl-tb-right,.pl-edge-left,.pl-edge-right,.pl-bottom-left,.pl-bottom-mid,.pl-bottom-right{background-image:url('${url('Pledit.bmp')}')!important}`);
   }
 
   style.textContent = rules.join('\n');

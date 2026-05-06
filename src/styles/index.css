@@ -392,25 +392,23 @@ html, body {
      - Left/right vertical edge strips (tile vertically)
      - Bottom strip (y=72..90 region) with corners + tile-fill
      - Five button groups across the bottom (ADD/REM/SEL/MISC/LIST) */
-/* ---------- PLAYLIST WINDOW ----------
-   Classic Winamp dimensions (275x232) but rendered with solid CSS bevels
-   so the borders are guaranteed to show regardless of skin loading state.
-   The list is the iconic green-on-black with a Win9x-style metallic frame. */
+/* ---------- PLAYLIST WINDOW (275x232, classic Winamp 2.x) ----------
+   Composed from Pledit.bmp atlas. The atlas regions used here follow the
+   well-known Winamp/Webamp layout for Pledit.bmp (280x186):
+     • Title bar active:   left=(0,0,25,20), middle=(26,0,100,20), right=(153,0,25,20)
+     • Title bar inactive: same regions offset +21 in y
+     • Vertical edges:     left=(0,42,25,29), right=(32,42,25,29) — tiled
+     • Bottom strip:       3 horiz pieces around y=72  (with button labels baked in)
+     • Button sprites:     right side of atlas, 22-25px wide
+*/
 .pl-window {
   position: relative;
   width: 275px;
   height: 232px;
   zoom: 2;
-  background: #1c1c1c;
+  background: #000;
   font-family: 'Arial', sans-serif;
   user-select: none;
-  border-top: 1px solid #888;
-  border-left: 1px solid #888;
-  border-right: 1px solid #000;
-  border-bottom: 1px solid #000;
-  box-shadow:
-    inset -1px -1px 0 #3a3a3a,
-    inset 1px 1px 0 #5a5a5a;
 }
 
 .pl-window.pl-dragover .pl-content {
@@ -418,74 +416,85 @@ html, body {
   background: #002b00;
 }
 
-/* ---------- TITLEBAR ---------- */
+/* ---------- TITLEBAR — composed from 3 sprite pieces ---------- */
 .pl-titlebar {
-  width: 100%;
-  height: 14px;
-  background: linear-gradient(to bottom, #2a3a8a 0%, #0c1450 100%);
-  border-bottom: 1px solid #000;
-  position: relative;
+  position: absolute;
+  left: 0; top: 0;
+  width: 275px;
+  height: 20px;
   cursor: move;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.pl-title-text {
-  font-family: 'Arial', sans-serif;
-  font-size: 8px;
-  font-weight: bold;
-  letter-spacing: 1px;
-  color: #c8d8ff;
-  text-shadow: 0 1px 0 #000;
-  text-transform: uppercase;
-  pointer-events: none;
+.pl-tb-left, .pl-tb-mid, .pl-tb-right {
+  position: absolute;
+  top: 0;
+  height: 20px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-repeat: no-repeat;
 }
+.pl-tb-left  { left: 0;            width: 25px;  background-position:    0 0; }
+.pl-tb-mid   { left: 25px; right: 25px; height: 20px;
+               background-position: -26px 0; background-repeat: repeat-x; }
+.pl-tb-right { right: 0;           width: 25px;  background-position: -153px 0; }
+
+/* The middle bitmap segment includes "WINAMP PLAYLIST EDITOR" baked in. */
+.pl-title-text { display: none; }
+
 .pl-tb-close {
   position: absolute;
-  top: 2px; right: 3px;
+  top: 3px; right: 3px;
   width: 9px; height: 9px;
-  background: linear-gradient(to bottom, #d8d8d8, #909090);
-  border: 1px solid;
-  border-color: #f0f0f0 #303030 #303030 #f0f0f0;
+  background: transparent;
+  border: 0;
   cursor: pointer;
   padding: 0;
   font-size: 0;
+  z-index: 5;
 }
-.pl-tb-close:active {
-  border-color: #303030 #f0f0f0 #f0f0f0 #303030;
-}
-.pl-tb-close::after {
-  content: '×';
+
+/* ---------- VERTICAL EDGES (left/right strips of the window) ---------- */
+.pl-edge-left, .pl-edge-right {
+  display: block;
   position: absolute;
-  top: -4px; left: 0;
-  width: 9px; text-align: center;
-  color: #000;
-  font-size: 10px;
-  font-family: Arial, sans-serif;
-  line-height: 9px;
-  font-weight: bold;
+  top: 20px;
+  bottom: 38px;
+  width: 12px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-repeat: repeat-y;
 }
+.pl-edge-left  { left:  0; background-position:    0 -42px; }
+.pl-edge-right { right: 0; background-position: -32px -42px; }
 
-/* The decorative side strips from the bitmap are no longer needed —
-   the .pl-window border handles framing. Keep the classes empty so any
-   stale markup doesn't break, but render nothing. */
-.pl-edge-left,
-.pl-edge-right { display: none; }
-.pl-bottom,
-.pl-bottom-left,
-.pl-bottom-mid,
-.pl-bottom-right { display: none; }
+/* ---------- BOTTOM STRIP — 3 sprite pieces, contains baked button labels ---------- */
+.pl-bottom {
+  display: block;
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  height: 38px;
+  pointer-events: none;
+}
+.pl-bottom-left, .pl-bottom-mid, .pl-bottom-right {
+  display: block;
+  position: absolute;
+  top: 0;
+  height: 38px;
+  background-image: url('/skins/base/Pledit.bmp');
+  background-repeat: no-repeat;
+}
+.pl-bottom-left  { left:  0; width: 125px; background-position:    0 -72px; }
+.pl-bottom-mid   { left: 125px; right: 150px; height: 38px;
+                   background-position: -125px -72px; background-repeat: repeat-x; }
+.pl-bottom-right { right: 0; width: 150px; background-position: -130px -72px; }
 
-/* ---------- LIST AREA ---------- */
+/* ---------- LIST AREA ----------
+   Black-bg green-on-black list; Winamp's classic look. */
 .pl-content {
   position: absolute;
-  left: 4px; right: 4px;
-  top: 16px; bottom: 44px;
+  left: 12px; right: 12px;
+  top: 20px; bottom: 38px;
   background: #000;
   overflow-y: auto;
-  border: 1px solid;
-  border-color: #303030 #6a6a6a #6a6a6a #303030; /* inset bevel */
-  padding: 2px 0;
+  padding: 1px 0;
   scrollbar-width: thin;
   scrollbar-color: #4a4a4a #000;
 }
@@ -500,26 +509,25 @@ html, body {
   display: flex;
   align-items: center;
   font-size: 9px;
-  color: #00ff33;
+  color: #00ff00;
   padding: 0 4px;
-  height: 11px;
-  line-height: 11px;
+  height: 12px;
+  line-height: 12px;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
-  font-family: 'Courier New', 'Lucida Console', monospace;
-  letter-spacing: 0.2px;
+  font-family: Arial, 'MS Sans Serif', sans-serif;
+  letter-spacing: 0;
 }
-.pl-item:hover { background: rgba(0,255,51,0.10); }
+.pl-item:hover { background: rgba(0,255,0,0.10); }
 .pl-item.selected {
   background: #0000c8;
-  color: #fff;
+  color: #00ff00;
 }
 .pl-item-num {
   flex: 0 0 16px;
   text-align: right;
   margin-right: 5px;
-  opacity: 0.85;
 }
 .pl-item-title {
   flex: 1 1 auto;
@@ -533,77 +541,56 @@ html, body {
 }
 
 .pl-empty {
-  color: #00ff33;
+  color: #00ff00;
   text-align: center;
   font-size: 9px;
   padding-top: 60px;
-  font-family: 'Courier New', monospace;
+  font-family: Arial, sans-serif;
   letter-spacing: 0.5px;
   opacity: 0.7;
   pointer-events: none;
 }
 
-/* ---------- BOTTOM BUTTON GROUPS ---------- */
+/* ---------- BOTTOM BUTTON GROUPS (transparent overlays over baked sprites) ----------
+   The bottom strip art in Pledit.bmp already shows the ADD/REM/SEL/MISC/LIST
+   labels and button graphics. We just need invisible click targets aligned
+   over those graphics. Each button is roughly 22x18 px on the strip. */
 .pl-btn-grp {
   position: absolute;
   bottom: 4px;
-  width: 47px;
-  height: 36px;
+  width: 75px;
+  height: 30px;
   z-index: 3;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  pointer-events: auto;
-}
-.pl-grp-add  { left: 6px; }
-.pl-grp-rem  { left: 56px; }
-.pl-grp-sel  { left: 106px; }
-.pl-grp-misc { left: 156px; }
-.pl-grp-list { right: 6px; }
-
-.pl-grp-label {
-  font-size: 8px;
-  color: #00ff33;
-  text-shadow: 0 0 1px #00ff33;
-  text-align: center;
-  letter-spacing: 1px;
-  height: 9px;
-  line-height: 9px;
-  margin-bottom: 2px;
-  font-family: 'Arial', sans-serif;
-  text-transform: uppercase;
-  font-weight: bold;
   pointer-events: none;
 }
+.pl-grp-add  { left:  10px; }
+.pl-grp-rem  { left:  60px; }
+.pl-grp-sel  { left: 110px; }
+.pl-grp-misc { left: 159px; }
+.pl-grp-list { left: 209px; }
+
+.pl-grp-label { display: none; }
+
 .pl-btn {
-  width: 100%;
-  height: 8px;
-  margin-bottom: 1px;
-  font-size: 7px;
-  line-height: 7px;
-  font-family: 'Arial', sans-serif;
-  font-weight: bold;
-  letter-spacing: 0.3px;
-  color: #000;
-  background: linear-gradient(to bottom, #d4d4d4 0%, #a4a4a4 50%, #7c7c7c 100%);
-  border: 1px solid;
-  border-color: #f0f0f0 #303030 #303030 #f0f0f0;
-  border-radius: 0;
-  cursor: pointer;
+  pointer-events: auto;
+  width: 22px;
+  height: 9px;
+  margin: 0;
   padding: 0;
-  text-transform: uppercase;
-}
-.pl-btn:hover:not(:disabled) {
-  background: linear-gradient(to bottom, #e4e4e4 0%, #b4b4b4 50%, #8c8c8c 100%);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 0;
+  color: transparent;
 }
 .pl-btn:active:not(:disabled) {
-  border-color: #303030 #f0f0f0 #f0f0f0 #303030;
-  background: linear-gradient(to top, #c0c0c0 0%, #707070 100%);
+  background: rgba(255,255,255,0.10);
 }
 .pl-btn:disabled {
-  color: #555;
   cursor: default;
-  opacity: 0.6;
+  opacity: 1;
 }
 
 /* Track count + total time — green LCD readout, sits centred between
@@ -611,207 +598,123 @@ html, body {
 .pl-counter {
   position: absolute;
   left: 0; right: 0;
-  bottom: 42px;
+  bottom: 30px;
   text-align: center;
-  color: #00ff33;
-  text-shadow: 0 0 2px #00ff33;
+  color: #00ff00;
   font-size: 9px;
   z-index: 2;
-  font-family: 'Courier New', monospace;
-  letter-spacing: 0.5px;
+  font-family: Arial, sans-serif;
   pointer-events: none;
-  font-weight: bold;
 }
 
-/* ---------- EQUALIZER WINDOW ---------- */
+/* ---------- EQUALIZER WINDOW (275x116) ----------
+   Renders the entire window from Eqmain.bmp at offset (0,0). The bitmap
+   already contains the title bar, ON/AUTO/PRESETS buttons (off state),
+   slider troughs and labels, and dB scale lines. We overlay:
+     • clickable transparent regions for buttons
+     • 11 vertical sliders with thumb sprite from atlas (1,164,14,11)
+*/
 .eq-window {
   position: relative;
   width: 275px;
   height: 116px;
   zoom: 2;
-  background: #1c1c1c;
+  background-image: url('/skins/base/Eqmain.bmp');
+  background-position: 0 0;
+  background-repeat: no-repeat;
   user-select: none;
   font-family: Arial, sans-serif;
-  border-top: 1px solid #888;
-  border-left: 1px solid #888;
-  border-right: 1px solid #000;
-  border-bottom: 1px solid #000;
-  box-shadow:
-    inset -1px -1px 0 #3a3a3a,
-    inset 1px 1px 0 #5a5a5a;
 }
+
+/* Drag handle over the title region (titlebar art is baked into bg) */
 .eq-titlebar {
   position: absolute;
   left: 0; top: 0;
-  width: 100%; height: 14px;
-  background: linear-gradient(to bottom, #2a3a8a 0%, #0c1450 100%);
-  border-bottom: 1px solid #000;
+  width: 275px;
+  height: 14px;
   cursor: move;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 1;
 }
-.eq-title-text {
-  font-family: 'Arial', sans-serif;
-  font-size: 8px;
-  font-weight: bold;
-  letter-spacing: 1px;
-  color: #c8d8ff;
-  text-shadow: 0 1px 0 #000;
-  text-transform: uppercase;
-  pointer-events: none;
-}
+.eq-title-text { display: none; }
 
-.eq-toggle {
+/* Transparent clickable close (sprite is baked, just need a click target) */
+.eq-close-btn {
   position: absolute;
-  height: 11px;
-  font-size: 7px;
-  font-weight: bold;
-  font-family: 'Arial', sans-serif;
-  color: #888;
-  background: linear-gradient(to bottom, #c0c0c0, #808080);
-  border: 1px solid;
-  border-color: #f0f0f0 #303030 #303030 #f0f0f0;
-  cursor: pointer;
-  padding: 0 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.eq-toggle.active {
-  color: #00ff33;
-  text-shadow: 0 0 2px #00ff33;
-  background: linear-gradient(to bottom, #303030, #101010);
-  border-color: #303030 #f0f0f0 #f0f0f0 #303030;
-}
-.eq-on    { left: 6px; top: 18px; width: 24px; }
-.eq-auto  { left: 32px; top: 18px; width: 28px; }
-
-.eq-presets {
-  position: absolute;
-  right: 6px; top: 18px;
-  width: 60px; height: 12px;
-  background: linear-gradient(to bottom,#000,#1a1a1a);
-  border: 1px solid;
-  border-color: #303030 #6a6a6a #6a6a6a #303030;
-  color: #00ff33;
-  font-size: 8px;
-  font-family: Arial, sans-serif;
-  cursor: pointer;
-  padding: 0 2px;
-}
-
-/* Bands area — preamp + 10 frequency sliders in one flex row. */
-.eq-bands {
-  position: absolute;
-  left: 6px; right: 6px;
-  top: 36px;
-  height: 76px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0;
-  padding: 0 2px;
-}
-.eq-band {
-  position: relative;
-  width: 22px;
-  height: 76px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-}
-.eq-preamp {
-  border-right: 1px solid #444;
-  margin-right: 3px;
-  padding-right: 3px;
-  width: 26px;
-}
-.eq-band-label {
-  font-size: 6px;
-  color: #aaa;
-  height: 6px;
-  line-height: 6px;
-  font-family: Arial, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 1px;
-  pointer-events: none;
-}
-.eq-band-value {
-  font-size: 6px;
-  color: #00ff33;
-  text-shadow: 0 0 1px #00ff33;
-  height: 6px;
-  line-height: 6px;
-  font-family: 'Courier New', monospace;
-  margin-top: 1px;
-  pointer-events: none;
-}
-.eq-slot {
-  position: relative;
-  width: 11px;
-  height: 64px;
-}
-.eq-track {
-  position: absolute;
-  top: 0; left: 4px;
-  width: 3px; height: 64px;
-  background: #050505;
-  border: 1px solid;
-  border-color: #1a1a1a #4a4a4a #4a4a4a #1a1a1a;
-}
-.eq-zero-line {
-  position: absolute;
-  left: 0;
-  top: 31px;
-  width: 11px;
-  height: 1px;
-  background: #555;
-  pointer-events: none;
-}
-.eq-thumb {
-  position: absolute;
-  left: 0;
-  width: 11px;
-  height: 11px;
-  background: linear-gradient(to bottom, #d4d4d4, #707070);
-  border: 1px solid;
-  border-color: #f0f0f0 #303030 #303030 #f0f0f0;
-  pointer-events: none;
-}
-.eq-band input[type="range"] {
-  -webkit-appearance: slider-vertical;
-  appearance: slider-vertical;
-  writing-mode: vertical-lr;
-  direction: rtl;
-  position: absolute;
-  top: 0; left: 0;
-  width: 11px;
-  height: 64px;
-  margin: 0;
-  padding: 0;
+  top: 3px; right: 3px;
+  width: 9px; height: 9px;
   background: transparent;
-  cursor: ns-resize;
-  opacity: 0;
+  border: 0;
+  padding: 0;
+  font-size: 0;
+  color: transparent;
+  cursor: pointer;
   z-index: 5;
 }
 
-.eq-close-btn {
+/* ON button — when active overlay the lit sprite from (10,119,25,12).
+   When inactive, the baked OFF state in the bg shows through. */
+.eq-on, .eq-auto {
   position: absolute;
-  top: 2px; right: 3px;
-  width: 9px; height: 9px;
-  background: linear-gradient(to bottom,#d8d8d8,#909090);
-  border: 1px solid;
-  border-color: #f0f0f0 #303030 #303030 #f0f0f0;
-  cursor: pointer;
-  font-size: 10px;
-  line-height: 7px;
-  color: #000;
-  font-weight: bold;
+  width: 25px;
+  height: 12px;
+  background-image: url('/skins/base/Eqmain.bmp');
+  background-repeat: no-repeat;
+  background-position: 9999px 9999px; /* hide by default */
+  border: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
-  z-index: 10;
+  font-size: 0;
+  color: transparent;
+  cursor: pointer;
+  z-index: 4;
+}
+.eq-on    { left: 14px; top: 18px; }
+.eq-auto  { left: 39px; top: 18px; }
+.eq-on.active   { background-position: -10px -119px; }
+.eq-auto.active { background-position: -40px -119px; }
+
+/* Presets dropdown — transparent native select over the baked PRESETS button */
+.eq-presets {
+  position: absolute;
+  right: 17px;
+  top: 18px;
+  width: 44px;
+  height: 12px;
+  background: transparent;
+  color: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 9px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  z-index: 4;
+}
+.eq-presets:focus { outline: none; }
+.eq-presets option { color: #000; background: #fff; }
+
+/* Slider area — each slot is 14x63 covering one trough column.
+   x is the centre of the column; the slot is left=x-7. */
+.eq-slot {
+  position: absolute;
+  width: 14px;
+  height: 63px;
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* Thumb sprite from Eqmain.bmp at (1,164,14,11). Pressed at (16,164,14,11). */
+.eq-thumb {
+  position: absolute;
+  left: 0;
+  width: 14px;
+  height: 11px;
+  background-image: url('/skins/base/Eqmain.bmp');
+  background-position: -1px -164px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.eq-thumb.pressed {
+  background-position: -16px -164px;
 }
 
 /* Hidden file inputs */
