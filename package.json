@@ -1,7 +1,7 @@
 {
   "name": "winamp-web",
-  "version": "1.0.3",
-  "description": "Winamp Web Application - Complete with Playlist & Equalizer",
+  "version": "1.0.4",
+  "description": "Pixel-perfect Winamp 2.x in the browser, powered by the canonical webamp library",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -9,14 +9,9 @@
     "start": "serve dist -p $PORT"
   },
   "dependencies": {
-    "jszip": "^3.10.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "webamp": "^2.2.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^4.0.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
   }

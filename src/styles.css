@@ -1,0 +1,65 @@
+/* Page chrome — Winamp itself is fully self-contained inside #webamp. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fff;
+  font-family: Arial, 'MS Sans Serif', sans-serif;
+  font-size: 11px;
+  min-height: 100vh;
+  overflow: auto;
+}
+
+* { box-sizing: border-box; }
+
+#webamp {
+  /* Webamp absolutely-positions its windows; this container just gives
+     them a viewport. Centering happens via Webamp's own logic. */
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Subtle starfield-ish gradient backdrop reminiscent of the classic
+   Winamp 2.x desktop screenshots — keeps the page from being empty
+   black around the bitmap windows. */
+body {
+  background:
+    radial-gradient(1200px 600px at 20% 10%, #1a1a1a 0%, #050505 60%, #000 100%),
+    #000;
+  background-attachment: fixed;
+}
+
+/* Show a small caption in the bottom-right with usage hints. The user
+   can drag .wsz skins or audio files onto Webamp directly. */
+.wa-help {
+  position: fixed;
+  right: 10px;
+  bottom: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  color: #888;
+  pointer-events: none;
+  z-index: 1;
+  text-align: right;
+  line-height: 1.4;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.8);
+}
+.wa-help strong { color: #b6ff00; font-weight: normal; }
+
+/* Loading hint shown until Webamp paints over it. */
+#boot-msg {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00ff33;
+  font-family: Arial, sans-serif;
+  font-size: 12px;
+  text-shadow: 0 0 4px #00ff33;
+  pointer-events: none;
+  letter-spacing: 1px;
+  z-index: 0;
+}
