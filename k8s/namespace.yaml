@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devx-crgarcia12-modern-winamp-liliput-920ccf05
+  labels:
+    app: modern-winamp
+    owner: crgarcia12
+    liliput-task: "920ccf05"

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devx-crgarcia12-modern-winamp-liliput-920ccf05
+  annotations:
+    liliput.dev/managed: "true"
+    liliput.dev/task-id: "920ccf05"
+    liliput.dev/repository: "crgarcia12/modern-winamp"
+  labels:
+    app.kubernetes.io/name: modern-winamp
+    app.kubernetes.io/instance: liliput-920ccf05
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/managed-by: liliput
+    owner: crgarcia12
+    liliput-task: "920ccf05"
